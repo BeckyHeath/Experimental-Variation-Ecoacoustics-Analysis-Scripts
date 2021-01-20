@@ -37,11 +37,10 @@ for (i in 1:nrow(audiosets)) {
 #write.csv(audiosets, "FEATURES_with_ID_FULL.csv")
 
 
-##### Compare all Columns with Same ID Number #####
+##### Compare all Columns with Same ID Number ##################################
 
-#FIND A WAY OF COMPARING ALL COLUMNS WITH SAME ID 
-#This just a test to get it working for now:
-###########################################################################  THIS ONE FOR ANALYTICAL INDICES
+####  THIS ONE FOR ANALYTICAL INDICES
+
 id.audiosets <- read.csv("Data_Analytical_Indices.csv", header = T)
 
 #GET ID NUMBER AS A FACTOR: 
@@ -52,7 +51,6 @@ id.audiosets <- id.audiosets[complete.cases(id.audiosets),]
 out.file <- id.audiosets[FALSE,]
 
 sort_per_file <- id.audiosets %>% group_split(id.no)
-
 
 #CREATE A LOOP THAT GOES THROUGH EACH OF THE GENERATED FILES AND COMPARES THE FEATURE TO THAT OF THE RAW
 for(i in 1:length(sort_per_file)) {
@@ -88,11 +86,13 @@ for(i in 1:length(sort_per_file)) {
   } 
 }
 
-
-write.csv(out.file, "difference_data_Analytical_Indices.csv")
+# Write to CSV
 with_dif<-cbind(out.file, total = rowSums(difference))
+#write.csv(out.file, "difference_data_Analytical_Indices.csv")
 
-###########################################################################  THIS ONE FOR AUDIOSET FINGERPRINT
+
+##############  THIS ONE FOR AUDIOSET FINGERPRINT
+
 id.audiosets <- read.csv("Data_AudioSet_Fingerprint.csv", header = T)
 
 #GET ID NUMBER AS A FACTOR: 
@@ -141,9 +141,10 @@ for(i in 1:length(sort_per_file)) {
   } 
 }
 
-
-write.csv(out.file, "Difference_Data_AudioSet_Fingerprint.csv")
+#Write to CSV
 with_dif<-cbind(out.file, total = rowSums(difference))
+#write.csv(out.file, "Difference_Data_AudioSet_Fingerprint.csv")
+
 
 
 
