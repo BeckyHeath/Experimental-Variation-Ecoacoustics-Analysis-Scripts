@@ -1,3 +1,13 @@
+#########################################################
+# Script that loads in the Confusion Matrix data and 
+# generates a figure
+#
+# David Orme Autumn 2020
+#
+# EDIT: BH, slight alteration to generate data from 
+#  a different df and aesthetic alterations
+
+
 library(lattice)
 library(dplyr)
 setwd("C:/Users/becky/Desktop/Research/(in Depth - needs to merge)/Compression Master (In Depth Analysis)/Final_Analysis/David's")
