@@ -1,7 +1,12 @@
 ########################################################################### .
-### STATS SCRIPT FOR COMPRESSION PAPER
-### BECKY HEATH 
-### October 2020
+# Final Stats and Figures Script for Compression Paper
+#
+# Becky Heath (with considerable contribution from Dr. David Orme)
+# r.heath18@imperial.ac.uk
+#
+# Autumn/Winter 2020/2021
+#
+#
 
 ##### Load Packages #####
 library("dplyr")

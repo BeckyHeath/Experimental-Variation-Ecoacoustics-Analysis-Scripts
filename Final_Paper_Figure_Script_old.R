@@ -1,7 +1,9 @@
-##### Graphing Master 
-####  Becky Heath
-####  Started 13th Feb 2020
-####  Aim to make a Master Graphing Script for the Compression Paper
+#################################################################################
+# Figure and Statistics Script for Compression Paper (2021)
+# Becky Heath (with considerable contributions from Dr David Orme)
+# Completed: Jan 2021
+#
+# Takes: - Random Forest Data 
 
 ##### LOAD PACKAGES : ####
 library(dplyr)
