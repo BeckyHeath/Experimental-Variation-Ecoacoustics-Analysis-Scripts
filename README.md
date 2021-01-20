@@ -28,6 +28,16 @@
  1) Calulates the mean and quartiles for each compression (as a % of the range) for both Analytical Indices and AudioSet Fingerprint
 
 ### Find the Effect of the altered factors on the indices descriptive abilities
+
+#### "random_forest_both_CM_gen_and_accuracy_output.r" 
+1) Defines the functions which perform temporal splitting of the data 
+2) Runs a random forest for each test case 
+3) Saves the Confusion Matix (for plotting) of each test case as well as the overall Accuracy, Precision and Recall
+
+ 
+ 
+ 
+ 
  
  ## Other Scripts
  ### AGB Generation 
