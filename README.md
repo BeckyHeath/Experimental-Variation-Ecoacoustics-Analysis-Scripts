@@ -34,9 +34,13 @@
 2) Runs a random forest for each test case 
 3) Saves the Confusion Matix (for plotting) of each test case as well as the overall Accuracy, Precision and Recall
 
+#### "CM_figure_script.r" 
+1) loads in the Confusion matrix data and generates the accuracy, precision and recall plot
+     - this plot is location specific and shows details about false positives/negatives at each site.
  
+ ### Manuscript Meta-Statistics and Figure Generation: 
  
- 
+ #### "Full_Stats_and_Figures.r"
  
  
  ## Other Scripts
