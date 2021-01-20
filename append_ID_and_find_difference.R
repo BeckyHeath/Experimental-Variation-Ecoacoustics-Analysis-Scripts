@@ -1,16 +1,26 @@
+#########################################################
+# Script to take Raw AudioSet and Analytical Index Data and
+#   1) Append and ID which to group same recordings with
+#       which have been compressed to different Levels
+#   2) Find the Difference between the raw and compressed values
+#
+# Becky Heath Summer 2020 
+# r.heath18@imperial.ac.uk
+
+# Load Libraries and set working directory ####
 library("dplyr")
-#LOAD LIBRARIES
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
+##### Append the ID ##########################################################
 
-#SET UP FILE LOCATION AND READ DB
-setwd("C:/Users/becky/Desktop/Research/(in Depth - needs to merge)/Compression Master (In Depth Analysis)/Final_Analysis")
+# Set working directory and load raw dataframe 
 audiosets <- read.csv("abs_dif_by_avg_SIX_FEATURES_fixed.csv", header = T)
 
-# SET UP NEW COLUMN 
+# Set up empty new column 
 audiosets$id.no <- NA
 audiosets <- audiosets[,c(ncol(audiosets),1:(ncol(audiosets)-1))]
 
-#APPEND ID NUMBER TO A COLUMN 
+#Append ID to column (this can take hours)
 for (i in 1:nrow(audiosets)) {
   row.no <- audiosets[i,]
   req_time <- as.character(row.no$frame.size)
@@ -18,16 +28,16 @@ for (i in 1:nrow(audiosets)) {
   date <- as.character(row.no$date)
   time <- as.character(row.no$time)
   id.number<- paste(req_time,site,date,time, sep="")
-  print(id.number)
-  print(i)
+  #print(id.number)
+  #print(i)
   audiosets[i,]$id.no <- id.number
 } 
 
-#EXPORT TO CSV (ID THING TOOK AGES)
-write.csv(audiosets, "FEATURES_with_ID_FULL.csv")
+#Export to CSV
+#write.csv(audiosets, "FEATURES_with_ID_FULL.csv")
 
-#####################################################################################################################
-#                                                          From here if ID already appended
+
+##### Compare all Columns with Same ID Number #####
 
 #FIND A WAY OF COMPARING ALL COLUMNS WITH SAME ID 
 #This just a test to get it working for now:
