@@ -2,7 +2,11 @@
 # Script to take Raw AudioSet and Analytical Index Data and
 #   1) Append and ID which to group same recordings with
 #       which have been compressed to different Levels
-#   2) Find the Difference between the raw and compressed values
+#   2) Find the Absolute Difference between the raw and compressed values
+# 
+#
+# EDIT: Differences were non-normally Distributed so Median and Quartiles found
+#       SEE "Median_and_Quartiles_Analytical_and_AudioSet.r" 
 #
 # Becky Heath Summer 2020 
 # r.heath18@imperial.ac.uk
