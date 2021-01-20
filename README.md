@@ -1,4 +1,4 @@
-# Compression_Paper_Data_Analysis_Scripts
+# Compression Paper Data Analysis Scripts
  
  
  ## Prior to these Scripts: 
@@ -21,9 +21,13 @@
  2) Absolute difference found 
  3) Q-Q plots used to determine difference distribution
 
- #### Median_and_quartiles_Analytical_and_AudioSet.r
- 
+ #### "merging_data_and_bland_altman.r"
+ 1) Generate Bland-Altman plots from scratch (presented as hexbin plots) 
 
+ #### Median_and_quartiles_Analytical_and_AudioSet.r
+ 1) Calulates the mean and quartiles for each compression (as a % of the range) for both Analytical Indices and AudioSet Fingerprint
+
+### Find the Effect of the altered factors on the indices descriptive abilities
  
  ## Other Scripts
  ### AGB Generation 
