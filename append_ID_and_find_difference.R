@@ -3,22 +3,28 @@
 #   1) Append and ID which to group same recordings with
 #       which have been compressed to different Levels
 #   2) Find the Absolute Difference between the raw and compressed values
-# 
+#   3) Present Q-Q Plots of the Difference Distributions 
 #
 # EDIT: Differences were non-normally Distributed so Median and Quartiles found
 #       SEE "Median_and_Quartiles_Analytical_and_AudioSet.r" 
 #
 # Becky Heath Summer 2020 
 # r.heath18@imperial.ac.uk
+#
+#
 
 # Load Libraries and set working directory ####
 library("dplyr")
+library("car")
+library("ggplot2")
+library("ggpubr")
+library("patchwork")
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 ##### Append the ID ##########################################################
 
 # Set working directory and load raw dataframe 
-audiosets <- read.csv("abs_dif_by_avg_SIX_FEATURES_fixed.csv", header = T)
+audiosets <- read.csv("xx.csv", header = T)
 
 # Set up empty new column 
 audiosets$id.no <- NA
@@ -41,7 +47,7 @@ for (i in 1:nrow(audiosets)) {
 #write.csv(audiosets, "FEATURES_with_ID_FULL.csv")
 
 
-##### Compare all Columns with Same ID Number ##################################
+##### Find Absolute Differences ##################################
 
 ####  THIS ONE FOR ANALYTICAL INDICES
 
@@ -159,3 +165,53 @@ with_dif<-cbind(out.file, total = rowSums(difference))
 
 
 
+
+##### Investigate Difference Normality#####
+
+
+
+dif.audiosets <- read.csv("Difference_Data_AudioSet_Fingerprint.csv")
+dif.analytical <- read.csv("Difference_Data_Analytical_Indices.csv")
+
+# Taking 2.5min as an example: 
+dif.AF <- dif.audiosets[(dif.audiosets$frame.size == "20min"),]
+dif.AI <- dif.analytical[(dif.audiosets$frame.size == "2_5min"),]
+
+# Generate Plots 
+
+# AudioSet
+for(i in c("VBR0", "CBR320", "CBR256","CBR128","CBR64", "CBR32","CBR16", "CBR8")){
+  dif.AF <- dif.audiosets[(dif.audiosets$compression == i),]
+  plot <- ggqqplot(dif.AF, x = "total.abs.dif", title = i)
+  var_name <- paste("plt_AF_",i, sep="")
+  assign(var_name, plot)
+}
+
+top <- plt_AF_VBR0 | plt_AF_CBR320 | plt_AF_CBR256 | plt_AF_CBR128
+bottom <- plt_AF_CBR64 | plt_AF_CBR32 | plt_AF_CBR16 | plt_AF_CBR8
+top/bottom + plot_annotation(title = "QQ Plot AudioSet")
+
+# Analytical Indices 
+for(i in c("ACI", "ADI", "Aeev", "Bio", "H","M","NDSI")){
+  for(j in c("VBR0", "CBR320", "CBR256","CBR128","CBR64", "CBR32","CBR16", "CBR8")){
+    dif.AI <- dif.analytical[(dif.analytical$compression == j),]
+    plot <- ggqqplot(dif.AI, x = i, title = j) 
+    var_name <- paste("plt_AI_",j, sep="")
+    assign(var_name, plot)
+  }
+  top <- plt_AI_VBR0 | plt_AI_CBR320 | plt_AI_CBR256 | plt_AI_CBR128
+  bottom <- plt_AI_CBR64 | plt_AI_CBR32 | plt_AI_CBR16 | plt_AI_CBR8
+  plot_title <- paste("QQ Plot Analytical ",i,sep="")
+  patch_plot <- top/bottom + plot_annotation(title = plot_title)
+  out_lab = paste("qq",i, sep="")
+  assign(out_lab,patch_plot)
+}
+
+# Call Patch Plots Individually
+qqACI
+qqADI
+qqAeev
+qqBio
+qqH
+qqM
+qqNDSI
