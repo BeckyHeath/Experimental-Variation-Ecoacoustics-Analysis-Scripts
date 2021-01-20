@@ -1,0 +1,146 @@
+library("dplyr")
+#LOAD LIBRARIES
+
+
+#SET UP FILE LOCATION AND READ DB
+setwd("C:/Users/becky/Desktop/Research/(in Depth - needs to merge)/Compression Master (In Depth Analysis)/Final_Analysis")
+audiosets <- read.csv("abs_dif_by_avg_SIX_FEATURES_fixed.csv", header = T)
+
+# SET UP NEW COLUMN 
+audiosets$id.no <- NA
+audiosets <- audiosets[,c(ncol(audiosets),1:(ncol(audiosets)-1))]
+
+#APPEND ID NUMBER TO A COLUMN 
+for (i in 1:nrow(audiosets)) {
+  row.no <- audiosets[i,]
+  req_time <- as.character(row.no$frame.size)
+  site <- as.character(row.no$site)
+  date <- as.character(row.no$date)
+  time <- as.character(row.no$time)
+  id.number<- paste(req_time,site,date,time, sep="")
+  print(id.number)
+  print(i)
+  audiosets[i,]$id.no <- id.number
+} 
+
+#EXPORT TO CSV (ID THING TOOK AGES)
+write.csv(audiosets, "FEATURES_with_ID_FULL.csv")
+
+#####################################################################################################################
+#                                                          From here if ID already appended
+
+#FIND A WAY OF COMPARING ALL COLUMNS WITH SAME ID 
+#This just a test to get it working for now:
+###########################################################################  THIS ONE FOR ANALYTICAL INDICES
+id.audiosets <- read.csv("Data_Analytical_Indices.csv", header = T)
+
+#GET ID NUMBER AS A FACTOR: 
+id.audiosets$id.no <- as.factor(id.audiosets$id.no)
+id.audiosets <- id.audiosets[complete.cases(id.audiosets),]
+
+#SET UP THE OUTPUT DATAFRAME:
+out.file <- id.audiosets[FALSE,]
+
+sort_per_file <- id.audiosets %>% group_split(id.no)
+
+
+#CREATE A LOOP THAT GOES THROUGH EACH OF THE GENERATED FILES AND COMPARES THE FEATURE TO THAT OF THE RAW
+for(i in 1:length(sort_per_file)) {
+  one.file <- sort_per_file[[i]]
+  #EXTRACT IT: 
+  raw.standard <- one.file[(one.file$compression)=="RAW",]
+  
+  if(nrow(raw.standard) == 0){
+    next
+  }
+  
+  for(j in 1:nrow(one.file)){
+    
+    test.row <- one.file[j,]
+  
+    #GET META THE ERRORS ARE IN ASSIGNING VARIABLES HERE 
+    out.id.no <- as.character(test.row$id.no[1])
+    out.frame.size <- as.character(test.row$frame.size[1])
+    out.compression <- as.factor(test.row$compression[1])
+    out.file.size<- as.character(test.row$file.size[1])
+    out.site<- as.character(test.row$site[1])
+    
+    #DROP NON NUMERICAL COLUMNS 
+    drops <- c("id.no","frame.size","file.size", "compression", "site", "date", "time","req.freq")
+    raw.standard <- raw.standard[ , !(names(raw.standard) %in% drops)]
+    test.row <- test.row[ , !(names(test.row) %in% drops)]
+    
+    #FIND THE DIFFERENCE 
+    difference <- raw.standard - test.row
+    x <- data.frame(out.id.no, out.file.size, out.compression, out.frame.size, out.site)
+    output.df <- cbind(x, difference)
+    out.file = rbind(out.file,output.df)
+  } 
+}
+
+
+write.csv(out.file, "difference_data_Analytical_Indices.csv")
+with_dif<-cbind(out.file, total = rowSums(difference))
+
+###########################################################################  THIS ONE FOR AUDIOSET FINGERPRINT
+id.audiosets <- read.csv("Data_AudioSet_Fingerprint.csv", header = T)
+
+#GET ID NUMBER AS A FACTOR: 
+id.audiosets$id.no <- as.factor(id.audiosets$id.no)
+id.audiosets <- id.audiosets[complete.cases(id.audiosets),]
+
+#SET UP THE OUTPUT DATAFRAME:
+out.file <- id.audiosets[FALSE,]
+
+sort_per_file <- id.audiosets %>% group_split(id.no)
+
+
+#CREATE A LOOP THAT GOES THROUGH EACH OF THE GENERATED FILES AND COMPARES THE FEATURE TO THAT OF THE RAW
+for(i in 1:length(sort_per_file)) {
+  one.file <- sort_per_file[[i]]
+  #EXTRACT IT: 
+  raw.standard <- one.file[(one.file$compression)=="RAW",]
+  print(i)
+  if(nrow(raw.standard) == 0){
+    next
+  }
+  
+  for(j in 1:nrow(one.file)){
+    
+    test.row <- one.file[j,]
+    
+    #GET META THE ERRORS ARE IN ASSIGNING VARIABLES HERE 
+    out.id.no <- as.character(test.row$id.no[1])
+    out.frame.size <- as.character(test.row$frame.size[1])
+    out.compression <- as.factor(test.row$compression[1])
+    out.file.size<- as.character(test.row$file.size[1])
+    out.site<- as.character(test.row$site[1])
+    
+    #DROP NON NUMERICAL COLUMNS 
+    drops <- c("id.no","frame.size","file.size", "compression", "site", "Date", "time","req_freq")
+    raw.standard <- raw.standard[ , !(names(raw.standard) %in% drops)]
+    test.row <- test.row[ , !(names(test.row) %in% drops)]
+    
+    #FIND THE DIFFERENCE 
+    difference <- raw.standard - test.row
+    total.dif <- rowSums(difference)
+    total.abs.dif <- rowSums(abs(difference))
+    x <- data.frame(out.id.no, out.file.size, out.compression, out.frame.size, out.site,total.dif, total.abs.dif)
+    output.df <- cbind(x, difference)
+    out.file = rbind(out.file,output.df)
+  } 
+}
+
+
+write.csv(out.file, "Difference_Data_AudioSet_Fingerprint.csv")
+with_dif<-cbind(out.file, total = rowSums(difference))
+
+
+
+
+
+
+
+
+
+
