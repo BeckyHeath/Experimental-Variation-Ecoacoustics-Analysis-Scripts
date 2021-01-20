@@ -1,3 +1,18 @@
+########################################################################### .
+# Generate Confusion Matrixes for Each test case (save all in "Confusion 
+# Matrixes") folder. Also Generate DF showing Accuracy, Precision and Recall
+# of each test case. 
+#
+# This script also splits the data into TOD for Temporal Splitting Analysis
+#
+# Becky Heath 
+# r.heath18@imperial.ac.uk
+#
+# Autumn/Winter 2020/2021
+#
+#
+
+#### Load Packages and Set Working Directory
 library("randomForest")
 library("tidyr")
 library(plyr)
@@ -6,10 +21,9 @@ library(dplyr)
 library(ggplot2)
 library(ggfortify)
 library(stringr)
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
-
-#### LOAD dataFRAME AND FORMAT: ########################################################################################################
-setwd("C:/Users/becky/Desktop/Research/(in Depth - needs to merge)/Compression Master (In Depth Analysis)/Final_Analysis")
+#### Load dataframe and Format Time: ####
 data <- read.csv("Data_AudioSet_Fingerprint.csv")
 
 data$site <- as.factor(data$site)
@@ -19,7 +33,13 @@ data <-
   mutate(time = str_pad(time, 4, side = 'left', pad = '0'))
 
 
-#### SET FUNCTIONS: ####################################################################################################################
+#### Define Functions #####
+#
+# These functions split the data depending of TOD into different 
+# size "chunks" 
+# 
+# This also contains the "do analysis" function which runs the 
+# random forest and saves the output CMs and accuracy metrics
 
 time_chunks_12 <- function(times){
   #print(times)
@@ -136,7 +156,7 @@ do_analysis <- function(data_hold, chunks) {
 }
 
 
-#### SPLIT dataFRAMES AND RUN ANALYSIS:  ###############################################################################################
+#### Split Dataframes and Run Analysis (AudioSet)  ####
 
 
 #Split dataframe depending on Compression:
@@ -245,7 +265,7 @@ for(i in 1:length(data_reqtime)) {
 
 
 
-#### SPLIT dataFRAMES AND RUN Analytical_Indices ANALYSIS:  ###############################################################################################
+#### Split Datframes and Run Analysis (Analytical Indices)  ###############################################################################################
 
 data <- read.csv("Data_Analytical_Indices.csv")
 data <- data[complete.cases(data),]
