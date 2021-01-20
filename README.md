@@ -8,13 +8,22 @@
 3) Audio Compressed (using fre:ac gui) and corresponding compression appended to filename
 4) Compressed audio split into different lengths (using pydub) and the length (frame size) appended to file name
 5) Audio (all locations, lengths, compression levels) run through the AudioSet CNN, fingerprint vector outputted to csv with filename used to describe metadata
-    this forms AudioSet raw data 
+    this forms AudioSet raw data: "Data_Analytical_Indices.csv"
 6) Audio (all locations, lengths, compression levels) analysed in R to extract Analytical Indices, outputted to csv with filename used to describe metadata
-    this forms Analytical Indices raw data
+    this forms Analytical Indices raw data: "Data_AudioSet_Fingerprint.csv"
 
- ## Steps of Analysis covered here
- Raw Analytical Index Data: "Data_Analytical_Indices.csv"
- Raw AudioSet Data: "Data_AudioSet_Fingerprint.csv"
+ ## Steps of Analysis covered in this repo
+ 
+ ### Find Value of Difference as a Result of Compression
+ 
+ #### append_ID_and_find_difference.r
+ 1) Each index reading given an ID number (ignoring compression) so all the same recordings of different compression level compared 
+ 2) Absolute difference found 
+ 3) Q-Q plots used to determine difference distribution
+
+ #### Median_and_quartiles_Analytical_and_AudioSet.r
+ 
+
  
  ## Other Scripts
  ### AGB Generation 
