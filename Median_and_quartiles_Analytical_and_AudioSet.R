@@ -1,15 +1,28 @@
+#########################################################
+# Script to Express the Difference data in terms of Median and Quartiles
+# as a % of the Range of the raw Values
+#
+#   USES: - difference data from "append_ID_and_find_difference.R"
+#         - the raw index datasets
+#
+# Becky Heath Summer 2020 
+# r.heath18@imperial.ac.uk
+#
+#
+# 
+
+# Import Libraries and Set Working Directory #####
 library(tidyr)
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
-
-##### IMPORT DATA : ####
-setwd("C:/Users/becky/Desktop/Research/(in Depth - needs to merge)/Compression Master (In Depth Analysis)/Final_Analysis")
+##### Load in Raw Data and Difference Data : ####
 dataset.index <- read.csv("Data_Analytical_Indices.csv")
 dataset.audiosets <- read.csv("Data_AudioSet_Fingerprint.csv")
 abs.dif.index <- read.csv("Difference_Data_Analytical_Indices.csv")
 abs.dif.audiosets <- read.csv("Difference_Data_AudioSet_Fingerprint.csv")
 
 
-###### FOR FEATURES #####
+###### Generate Medians and Quartiles as % raw range (ANALYTICAL INDICES) #####
 
 # Convert data to as a % of range 
 # Find range of each column
@@ -76,10 +89,10 @@ for(k in c("20min","10min","5min","2_5min")){
 }
 
 out.file$compression = as.factor(ifelse(is.na(out.file$compression), "RAW", out.file$compression))
-write.csv(out.file, "Median_and_Quartiles_Analytical_Indices.csv")
+#write.csv(out.file, "Median_and_Quartiles_Analytical_Indices.csv")
 
 
-###### FOR AUDIOSETS ######
+###### Generate Medians and Quartiles as % raw range (AUDIOSET) ######
 full.data.og <- dataset.audiosets
 dif.data.og <- abs.dif.audiosets
 
@@ -153,4 +166,4 @@ for(k in c("20min","10min","5min","2_5min")){
 }
 
 out.file$compression = as.factor(ifelse(is.na(out.file$compression), "RAW", out.file$compression))
-write.csv(out.file, "Median_and_Quartiles_AudioSet_Fingerprint.csv")
+#write.csv(out.file, "Median_and_Quartiles_AudioSet_Fingerprint.csv")
