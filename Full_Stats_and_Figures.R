@@ -251,7 +251,7 @@ dat$accuracy_t <- (dat$accuracy * (n - 1) + 0.5) / n
 
 # Maximum Models (fully iteracted and substitute)
 max_model <- accuracy_t ~ (log10(file.size) + chunks + frame.size) ^ 2 * index.type
-max_model_2 <- accuracy_t ~ log10(file.size)*chunks*frame.size*index.type
+max_model_2 <- accuracy_t ~ log10(file.size)*chunks*frame.size*index.type 
 
 # Linear Model (as in early analysis)
 mod_lm <- lm(max_model_2, data= dat)
@@ -270,11 +270,13 @@ print(var_plot)
 # Including Index Type and Chunks into the precision component of the model 
 
 mod_br_phi <- update(mod_br,  . ~ .  | index.type * chunks)
+summary(mod_br_phi)
+
 AIC(mod_lm, mod_br, mod_br_phi) # shows this model is best
 
 aov_table <- Anova(mod_br_phi)
 aov_table
-display_html(toString(kable(aov_table, format='html')))
+
 
 
 ## Lattice Plotting with HexBin
