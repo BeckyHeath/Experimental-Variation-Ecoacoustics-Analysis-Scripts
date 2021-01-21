@@ -34,6 +34,9 @@
 2) Runs a random forest for each test case 
 3) Saves the Confusion Matix (for plotting) of each test case as well as the overall Accuracy, Precision and Recall
 
+#### "Confusion_Matrix_Dataframe_gen.r"
+1) Loads in all the confusion matrix data and outputs a single dataframe which captures all of the relevant CM information
+
 #### "CM_figure_script.r" 
 1) loads in the Confusion matrix data and generates the accuracy, precision and recall plot
      - this plot is location specific and shows details about false positives/negatives at each site.
