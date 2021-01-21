@@ -106,7 +106,7 @@ write.csv(out.file,"LM_outputs_just_file_size.csv", row.names = FALSE)
 #combi$frame.size <- gsub('_', '.', combi$frame.size)
 #combi$frame.size <- as.numeric(combi$frame.size)
 
-##### Bartlett's Test for Homogeneity of Variance #####
+##### Levene's Test for Homogeneity of Variance #####
 
 analytical <- dataset.index
 analytical <- analytical[which(analytical$compression=="RAW"),]

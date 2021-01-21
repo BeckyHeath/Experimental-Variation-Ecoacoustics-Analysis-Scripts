@@ -315,20 +315,6 @@ patch1/patch2
 ### Will need to ask
 
 
-##### Correlation Plots #####
-corr.index <- na.omit(dataset.index)
-corr.index <- corr.index[,(9:16)]
-M.index <- cor(corr.index)
-
-corrplot(M.index, method = "color", "upper")
-vals.index <- t(M.index)[lower.tri(t(M.index))]
-vals.index <- abs(vals.index)
-corr.audioset <- na.omit(dataset.audiosets)
-corr.audioset <- corr.audioset[,(9:136)]
-M.audioset <- cor(corr.audioset)
-corrplot(M.audioset, method = "color", type = "upper", tl.col="white")
-vals.audioset <- t(M.audioset)[lower.tri(t(M.audioset))]
-vals.audioset <- abs(vals.audioset)
 
 ##### FIGURE 4 PCAs (Compressed V. RAW; Analytical Indices vs. AudioSet #####
 
@@ -621,6 +607,4 @@ combipatch1
 
 
 
-##### Experimental #####
 
-out <- t(corr.indices)[lower.tri(t(corr.indices))]
