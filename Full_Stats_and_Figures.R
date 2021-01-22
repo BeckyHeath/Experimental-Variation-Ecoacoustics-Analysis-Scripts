@@ -27,9 +27,9 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 options(na.action='na.fail', width=120)
 
 ##### Import Data #####
-dataset.index <- read.csv("Data_Analytical_Indices.csv")
-dataset.audiosets <- read.csv("Data_AudioSet_Fingerprint.csv")
-median.index <- read.csv("Median_and_Quartiles_Analytical_Indices.csv")
+dataset.index <- read.csv("Dataframes/Data_Analytical_Indices.csv")
+dataset.audiosets <- read.csv("Dataframes/Data_AudioSet_Fingerprint.csv")
+median.index <- read.csv("Dataframes/Median_and_Quartiles_Analytical_Indices.csv")
 median.audiosets <- read.csv("Median_and_Quartiles_AudioSet_Fingerprint.csv")
 abs.dif.index <- read.csv("Difference_Data_Analytical_Indices.csv")
 abs.dif.audiosets <- read.csv("Difference_Data_AudioSet_Fingerprint.csv")

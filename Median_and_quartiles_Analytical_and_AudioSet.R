@@ -16,27 +16,22 @@ library(tidyr)
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 ##### Load in Raw Data and Difference Data : ####
-dataset.index <- read.csv("Data_Analytical_Indices.csv")
-dataset.audiosets <- read.csv("Data_AudioSet_Fingerprint.csv")
-abs.dif.index <- read.csv("Difference_Data_Analytical_Indices.csv")
-abs.dif.audiosets <- read.csv("Difference_Data_AudioSet_Fingerprint.csv")
+dataset.index <- read.csv("Dataframes/Data_Analytical_Indices.csv")
+dataset.audiosets <- read.csv("Dataframes/Data_AudioSet_Fingerprint.csv")
+abs.dif.index <- read.csv("Dataframes/Difference_Data_Analytical_Indices.csv")
+abs.dif.audiosets <- read.csv("Dataframes/Difference_Data_AudioSet_Fingerprint.csv")
 
 
 ###### Generate Medians and Quartiles as % raw range (ANALYTICAL INDICES) #####
 
-# Convert data to as a % of range 
-# Find range of each column
+
+# Load in Dataframes
 full.data.og <- dataset.index
 dif.data.og <- abs.dif.index
-
-#FOR IF YOU'RE JUST DOING RANGE OF RAW
 full.data.og$compression <- as.factor(full.data.og$compression)
 
 
-#Now find median and upper and lower quartile
-#Median
-#as.numeric(quantile(dif.data$ACI, na.rm=TRUE)[3])
-
+# Initialise Output Dataframe
 out.file <- data.frame(index=character(),
                        compression=character(), 
                        frame.size=character(),
@@ -49,25 +44,34 @@ j = 0
 k = 0 
 
 for(k in c("20min","10min","5min","2_5min")){
+  
+  # Subset data for Appropriate Frame size (just use Raw)
   full.data <- full.data.og[full.data.og$frame.size== k,]
   full.data <- full.data[full.data$compression == "RAW",]
+  
+  # Subset difference Data for Appropriate Frame Size
   dif.data <- dif.data.og[dif.data.og$frame.size== k,]
-  ACI.range <- as.numeric(range(full.data$Aci, na.rm = TRUE)[2] - range(full.data$Aci, na.rm = TRUE)[1])
+  
+  # Find the Range (highest - lowest) of the raw of the relevant frame size
+  ACI.range <- as.numeric(range(full.data$ACI, na.rm = TRUE)[2] - range(full.data$ACI, na.rm = TRUE)[1])
   ADI.range <- as.numeric(range(full.data$ADI, na.rm = TRUE)[2] - range(full.data$ADI, na.rm = TRUE)[1])
   Aeev.range <- as.numeric(range(full.data$Aeev, na.rm = TRUE)[2] - range(full.data$Aeev, na.rm = TRUE)[1])
   Bio.range <- as.numeric(range(full.data$Bio, na.rm = TRUE)[2] - range(full.data$Bio, na.rm = TRUE)[1])
   H.range <- as.numeric(range(full.data$H, na.rm = TRUE)[2] - range(full.data$H, na.rm = TRUE)[1])
   M.range <- as.numeric(range(full.data$M, na.rm = TRUE)[2] - range(full.data$M, na.rm = TRUE)[1])
   NDSI.range <- as.numeric(range(full.data$NDSI, na.rm = TRUE)[2] - range(full.data$NDSI, na.rm = TRUE)[1])
-  #Find value as % of range:
-  dif.data$ACI <- as.numeric(dif.data$Aci)/ACI.range *100
+  
+  # Expresss Difference as % of range:
+  dif.data$ACI <- as.numeric(dif.data$ACI)/ACI.range *100
   dif.data$ADI <- as.numeric(dif.data$ADI)/ADI.range *100
   dif.data$Aeev <- as.numeric(dif.data$Aeev)/Aeev.range *100
   dif.data$Bio <- as.numeric(dif.data$Bio)/Bio.range *100
   dif.data$H <- as.numeric(dif.data$H)/H.range *100 
   dif.data$M <- as.numeric(dif.data$M)/M.range *100
   dif.data$NDSI <- as.numeric(dif.data$NDSI)/NDSI.range *100
-  for(i in c("Aci", "ADI", "Aeev", "Bio","H","M", "NDSI", "max.freq")){
+  
+  # Iterate through each parameter and find median and quartile values: 
+  for(i in c("ACI", "ADI", "Aeev", "Bio","H","M", "NDSI")){
     index <- dif.data[,c("id.no", i, "compression")]
     wide = index %>%
       spread(compression, i)
@@ -89,27 +93,39 @@ for(k in c("20min","10min","5min","2_5min")){
 }
 
 out.file$compression = as.factor(ifelse(is.na(out.file$compression), "RAW", out.file$compression))
-#write.csv(out.file, "Median_and_Quartiles_Analytical_Indices.csv")
+write.csv(out.file, "Dataframes/Median_and_Quartiles_Analytical_Indices.csv")
 
 
 ###### Generate Medians and Quartiles as % raw range (AUDIOSET) ######
+
+# Load Dataframes
 full.data.og <- dataset.audiosets
 dif.data.og <- abs.dif.audiosets
 
-### GET IT AS A % OF RANGE 
+# Initialise Output File
 j=0
 k=0
 data.out <- dif.data.og[0,]
+
+
 for(k in c("20min","10min","5min","2_5min")){
+  
+  # Subset the Raw data of the right frame size
   full.data <- full.data.og[full.data.og$frame.size== k,]
   full.data <- full.data[full.data$compression == "RAW",]
+  
+  #Subset Difference data of right frame size
   dif.data <- dif.data.og[dif.data.og$frame.size== k,]
   data.grp <- dif.data
+  
   for(j in seq(1:128)){
     col.name <- paste0("feat",j)
     full.col <- full.data[,col.name]
+    
+    # Find Range of Raw Values 
     col.range <- as.numeric(range(full.col, na.rm = TRUE)[2] - range(full.col, na.rm = TRUE)[1])
-    #print(col.range)
+    
+    # 
     dif.col <- data.grp[,col.name]
     dif.col <- (dif.col/col.range)*100
     data.grp[,col.name] <- dif.col
@@ -139,6 +155,7 @@ out.file <- data.frame(index=character(),
 
 
 
+# Then Find Median and IQRs 
 i = 0
 j = 0
 k = 0 
@@ -166,4 +183,4 @@ for(k in c("20min","10min","5min","2_5min")){
 }
 
 out.file$compression = as.factor(ifelse(is.na(out.file$compression), "RAW", out.file$compression))
-#write.csv(out.file, "Median_and_Quartiles_AudioSet_Fingerprint.csv")
+write.csv(out.file, "Dataframes/Median_and_Quartiles_AudioSet_Fingerprint.csv")
