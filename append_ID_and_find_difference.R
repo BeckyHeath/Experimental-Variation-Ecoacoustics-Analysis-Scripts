@@ -51,7 +51,7 @@ for (i in 1:nrow(audiosets)) {
 
 ####  THIS ONE FOR ANALYTICAL INDICES
 
-id.audiosets <- read.csv("Data_Analytical_Indices.csv", header = T)
+id.audiosets <- read.csv("Dataframes/Data_Analytical_Indices.csv", header = T)
 
 #GET ID NUMBER AS A FACTOR: 
 id.audiosets$id.no <- as.factor(id.audiosets$id.no)
@@ -61,6 +61,7 @@ id.audiosets <- id.audiosets[complete.cases(id.audiosets),]
 out.file <- id.audiosets[FALSE,]
 
 sort_per_file <- id.audiosets %>% group_split(id.no)
+
 
 #CREATE A LOOP THAT GOES THROUGH EACH OF THE GENERATED FILES AND COMPARES THE FEATURE TO THAT OF THE RAW
 for(i in 1:length(sort_per_file)) {
@@ -98,12 +99,12 @@ for(i in 1:length(sort_per_file)) {
 
 # Write to CSV
 with_dif<-cbind(out.file, total = rowSums(difference))
-#write.csv(out.file, "difference_data_Analytical_Indices.csv")
+#write.csv(out.file, "Dataframes/difference_data_Analytical_Indices.csv")
 
 
 ##############  THIS ONE FOR AUDIOSET FINGERPRINT
 
-id.audiosets <- read.csv("Data_AudioSet_Fingerprint.csv", header = T)
+id.audiosets <- read.csv("Dataframes/Data_AudioSet_Fingerprint.csv", header = T)
 
 #GET ID NUMBER AS A FACTOR: 
 id.audiosets$id.no <- as.factor(id.audiosets$id.no)
@@ -114,13 +115,15 @@ out.file <- id.audiosets[FALSE,]
 
 sort_per_file <- id.audiosets %>% group_split(id.no)
 
-
+# This works but is incredibly long winded
 #CREATE A LOOP THAT GOES THROUGH EACH OF THE GENERATED FILES AND COMPARES THE FEATURE TO THAT OF THE RAW
 for(i in 1:length(sort_per_file)) {
   one.file <- sort_per_file[[i]]
   #EXTRACT IT: 
   raw.standard <- one.file[(one.file$compression)=="RAW",]
-  print(i)
+  if(i %% 1000 == 0){
+    print(i)
+  }
   if(nrow(raw.standard) == 0){
     next
   }
@@ -137,7 +140,7 @@ for(i in 1:length(sort_per_file)) {
     out.site<- as.character(test.row$site[1])
     
     #DROP NON NUMERICAL COLUMNS 
-    drops <- c("id.no","frame.size","file.size", "compression", "site", "Date", "time","req_freq")
+    drops <- c("id.no","frame.size","file.size", "compression", "site", "date", "time","req.freq","max.freq")
     raw.standard <- raw.standard[ , !(names(raw.standard) %in% drops)]
     test.row <- test.row[ , !(names(test.row) %in% drops)]
     
@@ -153,7 +156,7 @@ for(i in 1:length(sort_per_file)) {
 
 #Write to CSV
 with_dif<-cbind(out.file, total = rowSums(difference))
-#write.csv(out.file, "Difference_Data_AudioSet_Fingerprint.csv")
+#write.csv(out.file, "Dataframes/Difference_Data_AudioSet_Fingerprint.csv")
 
 
 
@@ -170,11 +173,11 @@ with_dif<-cbind(out.file, total = rowSums(difference))
 
 
 
-dif.audiosets <- read.csv("Difference_Data_AudioSet_Fingerprint.csv")
-dif.analytical <- read.csv("Difference_Data_Analytical_Indices.csv")
+dif.audiosets <- read.csv("Dataframes/Difference_Data_AudioSet_Fingerprint.csv")
+dif.analytical <- read.csv("Dataframes/Difference_Data_Analytical_Indices.csv")
 
 # Taking 2.5min as an example: 
-dif.AF <- dif.audiosets[(dif.audiosets$frame.size == "20min"),]
+dif.AF <- dif.audiosets[(dif.audiosets$frame.size == "2_5min"),]
 dif.AI <- dif.analytical[(dif.audiosets$frame.size == "2_5min"),]
 
 # Generate Plots 
@@ -182,14 +185,14 @@ dif.AI <- dif.analytical[(dif.audiosets$frame.size == "2_5min"),]
 # AudioSet
 for(i in c("VBR0", "CBR320", "CBR256","CBR128","CBR64", "CBR32","CBR16", "CBR8")){
   dif.AF <- dif.audiosets[(dif.audiosets$compression == i),]
-  plot <- ggqqplot(dif.AF, x = "total.abs.dif", title = i)
+  plot <- ggqqplot(dif.AF, x = "total.dif", title = i)
   var_name <- paste("plt_AF_",i, sep="")
   assign(var_name, plot)
 }
 
 top <- plt_AF_VBR0 | plt_AF_CBR320 | plt_AF_CBR256 | plt_AF_CBR128
 bottom <- plt_AF_CBR64 | plt_AF_CBR32 | plt_AF_CBR16 | plt_AF_CBR8
-top/bottom + plot_annotation(title = "QQ Plot AudioSet")
+top/bottom + plot_annotation(title = "Difference Values QQ Plot AudioSet")
 
 # Analytical Indices 
 for(i in c("ACI", "ADI", "Aeev", "Bio", "H","M","NDSI")){
@@ -201,7 +204,7 @@ for(i in c("ACI", "ADI", "Aeev", "Bio", "H","M","NDSI")){
   }
   top <- plt_AI_VBR0 | plt_AI_CBR320 | plt_AI_CBR256 | plt_AI_CBR128
   bottom <- plt_AI_CBR64 | plt_AI_CBR32 | plt_AI_CBR16 | plt_AI_CBR8
-  plot_title <- paste("QQ Plot Analytical ",i,sep="")
+  plot_title <- paste("Difference Values QQ Plot Analytical ",i,sep="")
   patch_plot <- top/bottom + plot_annotation(title = plot_title)
   out_lab = paste("qq",i, sep="")
   assign(out_lab,patch_plot)
