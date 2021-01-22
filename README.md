@@ -36,10 +36,6 @@
 
 #### "Confusion_Matrix_Dataframe_gen.r"
 1) Loads in all the confusion matrix data and outputs a single dataframe which captures all of the relevant CM information
-
-#### "CM_figure_script.r" 
-1) loads in the Confusion matrix data and generates the accuracy, precision and recall plot
-     - this plot is location specific and shows details about false positives/negatives at each site.
  
  ### Manuscript Meta-Statistics and Figure Generation: 
  
