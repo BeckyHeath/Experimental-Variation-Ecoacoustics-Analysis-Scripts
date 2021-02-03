@@ -30,10 +30,12 @@ options(na.action='na.fail', width=120)
 dataset.index <- read.csv("Dataframes/Data_Analytical_Indices.csv")
 dataset.audiosets <- read.csv("Dataframes/Data_AudioSet_Fingerprint.csv")
 median.index <- read.csv("Dataframes/Median_and_Quartiles_Analytical_Indices.csv")
-median.audiosets <- read.csv("Median_and_Quartiles_AudioSet_Fingerprint.csv")
-abs.dif.index <- read.csv("Difference_Data_Analytical_Indices.csv")
-abs.dif.audiosets <- read.csv("Difference_Data_AudioSet_Fingerprint.csv")
-accuracy.both <- read.csv("RF_Accuracy_Both.csv")
+median.audiosets <- read.csv("Dataframes/Median_and_Quartiles_AudioSet_Fingerprint.csv")
+abs.dif.index <- read.csv("Dataframes/Difference_Data_Analytical_Indices.csv")
+abs.dif.audiosets <- read.csv("Dataframes/Difference_Data_AudioSet_Fingerprint.csv")
+accuracy.both <- read.csv("Dataframes/RF_Accuracy_Both.csv")
+cm.subset <- read.csv("Dataframes/Confusion_matrix_data_just_quaters_CBR8_v_Raw.csv", fileEncoding = "UTF-8-BOM" )
+cm.all <- read.csv("Dataframes/Complete_Confusion_Matrix_data.csv", fileEncoding = "UTF-8-BOM" )
 
 ##### Impact of Index: Auto Correlation (Figure 2) #####
 
@@ -83,7 +85,7 @@ for(index in c("ACI", "ADI", "Aeev", "Bio", "H", "M", "NDSI")){
     plot8 <-ggplot(sample, aes(x=compression, y=median)) + 
       geom_errorbar(aes(ymin=lower, ymax=higher), width=.4, size =0.1) +
       labs(y = "Bias as % of Range") +
-      ggtitle("NDSI") + 
+      ggtitle(index) + 
       theme_minimal() +
       theme(plot.title = element_text(hjust=0.01, vjust =-5)) +
       theme(axis.title.x=element_blank()) +
@@ -99,12 +101,33 @@ for(index in c("ACI", "ADI", "Aeev", "Bio", "H", "M", "NDSI")){
       geom_hline(yintercept = 0, color = "DarkGrey") 
     plot_name <- paste("BA_plt_", index, sep="")
     assign(plot_name,plot8)
-  }  else {
+    
+  } else if(index == "Bio"){
+    plot8 <-ggplot(sample, aes(x=compression, y=median)) + 
+      geom_errorbar(aes(ymin=lower, ymax=higher), width=.4, size =0.1) +
+      labs(y = "Bias as % of Range") +
+      ggtitle(index) + 
+      theme_minimal() +
+      theme(plot.title = element_text(hjust=0.01, vjust =-10)) +
+      theme(axis.title.x=element_blank()) +
+      theme(axis.text.x = element_text(size = 8, angle = 90)) +
+      theme(axis.title.y=element_blank())+
+      theme(legend.position = "none") +
+      theme(axis.line = element_line()) +
+      theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+      #ylim(-100,100)+
+      geom_point(size=0.9)+
+      annotate("rect", xmin = 0, xmax = 10, ymin = -5, ymax = 5, 
+               alpha = .15,fill='green') +
+      geom_hline(yintercept = 0, color = "DarkGrey") 
+    plot_name <- paste("BA_plt_", index, sep="")
+    assign(plot_name,plot8)
+  } else {
     plot <-ggplot(sample, aes(x=compression, y=median)) + 
       geom_errorbar(aes(ymin=lower, ymax=higher), width=.4, size =0.1) +
       ggtitle(index) + 
       theme_minimal() +
-      theme(plot.title = element_text(hjust=0.01, vjust =-10)) +
+      theme(plot.title = element_text(hjust=0.01, vjust =-5)) +
       theme(panel.grid.major.x = element_blank()) +
       theme(axis.title.x=element_blank()) +
       theme(axis.text.x = element_blank()) +
@@ -125,7 +148,7 @@ for(index in c("ACI", "ADI", "Aeev", "Bio", "H", "M", "NDSI")){
 
 # Subset and Order the Data
 data <- median.audiosets
-data <- data[data$frame.size =="5min",]
+data <- data[data$frame.size =="2_5min",]
 data$compression <- factor(data$compression, levels = c("RAW","VBR0", "CBR320", "CBR256", "CBR128", "CBR64", "CBR32", "CBR16", "CBR8"))
 
 sample <- data[data$index == "total.dif.R",]
@@ -156,6 +179,7 @@ p2 <- BA_plt_ACI / BA_plt_Aeev / BA_plt_H / BA_plt_NDSI
 # Final Plot
 BA_combi_plot <- p1|p2
 
+BA_combi_plot
 
 # 2) Spearman's Rank Correlation 
 
@@ -239,15 +263,22 @@ write.csv(out.file, "Lavernes_test.csv")
 ## contributed by Dr. David Orme (Imperial College London)
 ## minor contributions by Becky Heath
 
-# David's 
-cm.o <- read.csv("Confusion_matrix_data.csv", fileEncoding = "UTF-8-BOM" )
+# David's Dataframe Subset
+cm.o <- cm.subset
 
-# Becky's 
-whole.df <- read.csv("Complete_Confusion_Matrix_data.csv", fileEncoding = "UTF-8-BOM" )
+# Becky's Includes all Confusion Matrix outputs
+whole.df <- cm.all
 cm <- whole.df[whole.df$frame.size == "20min",]
 cm <- subset(cm, (Comp %in% c("CBR8","RAW")) & (chunks %in% c("4", "None")))
 
-cm$Time <- ordered(cm$Time, levels=c('Dawn','Midday','Dusk','Midnight','Day'))
+
+# Organise Dataframe
+cm$Time <- ordered(cm$Time, levels=c("Dawn","Midday","Dusk","Midnight","Whole Day"))
+cm$Obs <- as.factor(cm$Obs)
+cm$Pred <- as.factor(cm$Pred)
+cm$Ind <- as.factor(cm$Ind)
+
+cm <- cm[order(cm$Time),]
 
 # Accuracy
 accuracy <- aggregate(N ~ Time + Ind + Comp, data=cm, FUN=sum, subset=Obs==Pred)
@@ -263,8 +294,8 @@ precision$Recall <- numeric(0)
 precision$Case <- character(0)
 
 # Loop over combinations
-combn <- list(c('Grassland', 'Logged', 'G-L'), 
-              c('Grassland', 'Primary', 'G-P'),
+combn <- list(c('Cleared', 'Logged', 'C-L'), 
+              c('Cleared', 'Primary', 'C-P'),
               c('Logged', 'Primary', 'L-P'))
 
 for (this_comb in combn){
@@ -318,7 +349,7 @@ add.alpha <- function(cols, alpha) rgb(t(col2rgb(cols)/255), alpha = alpha)
 
 plot_fun <- function(var, d, label='a'){
   
-  order <- c("Dawn", "Midday", "Dusk", "Midnight", "Day")
+  order <- c("Dawn", "Midday", "Dusk", "Midnight", "Whole Day")
   d <- d %>%
     mutate(Time =  factor(Time, levels = order)) %>%
     arrange(Time) 
@@ -329,18 +360,18 @@ plot_fun <- function(var, d, label='a'){
   
   # create a correctly sized empty plot first, to make it easy to add the 
   # all-day means first and then overlay the 6 hour (type='n')
-  plot(fm, data=d, subset= Ind == 'AS' & Time !='Day', 
+  plot(fm, data=d, subset= Ind == 'AS' & Time !='Whole Day', 
        ylim=yl, xlim=xl, xaxt='n', yaxt='n', type='n')
   
   # Add horizontal lines for the all daily recordings values
-  dd <- subset(d, Ind == 'AS' & Time == 'Day', select=var)[,1]
+  dd <- subset(d, Ind == 'AS' & Time == 'Whole Day', select=var)[,1]
   segments(1,dd,4,dd, col=add.alpha(palette()[1], 0.3), lwd=2)
-  dd <- subset(d, Ind == 'AI' & Time == 'Day', select=var)[,1]
+  dd <- subset(d, Ind == 'AI' & Time == 'Whole Day', select=var)[,1]
   segments(1,dd,4,dd, col=add.alpha(palette()[2], 0.3), lwd=2)
   
   # Add points and lines (type='o) for Audioset and AI for 6 hours
-  points(fm, data=d, subset= Ind == 'AS' & Time !='Day', col=1, type='o')
-  points(fm, data=d, subset= Ind == 'AI' & Time !='Day', col=2, type='o')
+  points(fm, data=d, subset= Ind == 'AS' & Time !='Whole Day', col=1, type='o')
+  points(fm, data=d, subset= Ind == 'AI' & Time !='Whole Day', col=2, type='o')
   
   text(1, 0.6, paste0(label, ')'))
 }
@@ -378,7 +409,7 @@ for (cs in levels(precision$Case)){
            label=these_labels[1])
   axis(2, at=yat)
   
-  if(cs == 'G-P') mtext('Precision', side=2, cex=0.6, line=1.5)
+  if(cs == 'C-P') mtext('Precision', side=2, cex=0.6, line=1.5)
   
   plot_fun('Precision', subset(precision, Comp == 'CBR8' & Case == cs), 
            label=these_labels[2])
@@ -401,7 +432,7 @@ for (cs in levels(precision$Case)){
   axis(2, at=yat)
   
   if(cs == 'L-P') axis(1, at=1:4, labels=levels(accuracy$Time)[1:4])
-  if(cs == 'G-P') mtext('Recall', side=2, cex=0.6, line=1.5)
+  if(cs == 'C-P') mtext('Recall', side=2, cex=0.6, line=1.5)
   
   plot_fun('Recall', subset(precision, Comp == 'CBR8' & Case == cs), 
            label=these_labels[2])
