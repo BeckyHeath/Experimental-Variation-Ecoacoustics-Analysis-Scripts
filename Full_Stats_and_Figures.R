@@ -21,6 +21,7 @@ library(betareg)
 library(lmtest)
 library(knitr)
 library(IRdisplay)
+library(hexbin)
 
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
@@ -33,8 +34,8 @@ median.index <- read.csv("Dataframes/Median_and_Quartiles_Analytical_Indices.csv
 median.audiosets <- read.csv("Dataframes/Median_and_Quartiles_AudioSet_Fingerprint.csv")
 abs.dif.index <- read.csv("Dataframes/Difference_Data_Analytical_Indices.csv")
 abs.dif.audiosets <- read.csv("Dataframes/Difference_Data_AudioSet_Fingerprint.csv")
-accuracy.both <- read.csv("Dataframes/RF_Accuracy_Both.csv")
-cm.subset <- read.csv("Dataframes/Confusion_matrix_data_just_quaters_CBR8_v_Raw.csv", fileEncoding = "UTF-8-BOM" )
+accuracy.both <- read.csv("Dataframes/RF_Accuracy_both_Aug_Test.csv")
+cm.subset <- read.csv("Dataframes/Confusion_matrix_data.csv", fileEncoding = "UTF-8-BOM" )
 cm.all <- read.csv("Dataframes/Complete_Confusion_Matrix_data.csv", fileEncoding = "UTF-8-BOM" )
 
 ##### Impact of Index: Auto Correlation (Figure 2) #####
@@ -263,22 +264,11 @@ write.csv(out.file, "Lavernes_test.csv")
 ## contributed by Dr. David Orme (Imperial College London)
 ## minor contributions by Becky Heath
 
-# David's Dataframe Subset
-cm.o <- cm.subset
-
-# Becky's Includes all Confusion Matrix outputs
 whole.df <- cm.all
 cm <- whole.df[whole.df$frame.size == "20min",]
 cm <- subset(cm, (Comp %in% c("CBR8","RAW")) & (chunks %in% c("4", "None")))
 
-
-# Organise Dataframe
-cm$Time <- ordered(cm$Time, levels=c("Dawn","Midday","Dusk","Midnight","Whole Day"))
-cm$Obs <- as.factor(cm$Obs)
-cm$Pred <- as.factor(cm$Pred)
-cm$Ind <- as.factor(cm$Ind)
-
-cm <- cm[order(cm$Time),]
+cm$Time <- ordered(cm$Time, levels=c('Dawn','Midday','Dusk','Midnight','Whole Day'))
 
 # Accuracy
 accuracy <- aggregate(N ~ Time + Ind + Comp, data=cm, FUN=sum, subset=Obs==Pred)
@@ -432,7 +422,7 @@ for (cs in levels(precision$Case)){
   axis(2, at=yat)
   
   if(cs == 'L-P') axis(1, at=1:4, labels=levels(accuracy$Time)[1:4])
-  if(cs == 'C-P') mtext('Recall', side=2, cex=0.6, line=1.5)
+  if(cs == 'G-P') mtext('Recall', side=2, cex=0.6, line=1.5)
   
   plot_fun('Recall', subset(precision, Comp == 'CBR8' & Case == cs), 
            label=these_labels[2])
@@ -440,6 +430,7 @@ for (cs in levels(precision$Case)){
   
   if(cs == 'L-P') axis(1, at=1:4, labels=levels(accuracy$Time)[1:4])
 }
+
 
 
 ##### Impact of Parameter Alteration on Classification Task (Figure 5) #####
@@ -457,18 +448,23 @@ dat$chunks <- factor(dat$chunks, levels=c("None", "4", "8", "12"))
 # Note: this reduces 100% values to 99.94% ((100*1799)+0.5)/1800
 n <- nrow(dat)
 dat$accuracy_t <- (dat$accuracy * (n - 1) + 0.5) / n
+dat$precision_t <- (dat$precision * (n - 1) + 0.5) / n
+dat$recall_t <- (dat$recall * (n - 1) + 0.5) / n
+
+dat <- dat[complete.cases(dat),]
+
 
 # Maximum Models (fully iteracted and substitute)
 max_model <- accuracy_t ~ (log10(file.size) + chunks + frame.size) ^ 2 * index.type
-max_model_2 <- accuracy_t ~ log10(file.size)*chunks*frame.size*index.type 
+max_model <- precision_t ~ (log10(file.size) + chunks + frame.size) ^ 2 * index.type
+max_model <- recall_t ~ (log10(file.size) + chunks + frame.size) ^ 2 * index.type
 
 # Linear Model (as in early analysis)
-mod_lm <- lm(max_model_2, data= dat)
+mod_lm <- lm(max_model, data= dat)
 summary.aov(mod_lm)
 
 # Betareg Model
 mod_br <- betareg(max_model, data=dat) 
-summary(mod_br)
 
 # Looking at Variation: 
 var_plot <- bwplot(accuracy ~ frame.size | index.type + chunks, data=dat)
@@ -490,7 +486,83 @@ aov_table
 
 ## Lattice Plotting with HexBin
 
+
+dat$index.type <- as.factor(dat$index.type)
+
+# Create a range of values to predict
+pred <- expand.grid(file.size = 10 ^ seq(0, 2, length=31),
+                    index.type = levels(dat$index.type),
+                    chunks = levels(dat$chunks),
+                    frame.size = levels(dat$frame.size))
+
+# Create the predictions
+pred$fit_acc <- predict(mod_br_phi, newdata=pred)
+
+# Plot them
+key <- list(corner=c(0.98, 0.03),
+            lines=list(col=trellis.par.get('superpose.line')$col[1:4]),
+            text=list(c("20 min", "10 min", "5 min", "2.5 min"), cex=0.7))
+
+pred_plot_acc <- xyplot(fit_acc ~ log10(file.size) | index.type + chunks, group= frame.size, 
+                        data=pred, type='l', key=key)
+pred_plot_acc <- useOuterStrips(pred_plot_acc)
+print(pred_plot_acc)
+
+
+# Then do this for precision
+
+dat$precision_t <- (dat$precision * (n - 1) + 0.5) / n 
+mod_br_phi_prec <- update(mod_br_phi, precision_t ~ ., subset = ! is.na(precision_t))
+
+# Plot them
+pred$prec_fit <- predict(mod_br_phi_prec, newdata=pred)
+
+pred_plot_prec <- xyplot(prec_fit ~ log10(file.size) | index.type + chunks, group= frame.size, 
+                         data=pred, type='l', key=key, 
+                         scales=list(alternating=FALSE, y=list(lim=c(0.65,1.05), at=c(0.7,0.8,0.9,1.0))),
+                         ylab='Predicted precision', main='Precision')
+pred_plot_prec <- useOuterStrips(pred_plot_prec)
+print(pred_plot_prec)
+
+
+# and Recall
+
+dat$recall_t <- (dat$recall * (n - 1) + 0.5) / n 
+mod_br_phi_recall <- update(mod_br_phi, recall_t ~ .)
+
+pred$recall_fit <- predict(mod_br_phi_recall, newdata=pred)
+
+# Plot them
+pred_plot_recall <- xyplot(recall_fit ~ log10(file.size) | index.type + chunks, group= frame.size, 
+                           data=pred, type='l', key=key, 
+                           scales=list(alternating=FALSE, y=list(lim=c(0.65,1.05), at=c(0.7,0.8,0.9,1.0))),
+                           ylab='Predicted recall', main='Recall')
+pred_plot_recall <- useOuterStrips(pred_plot_recall)
+print(pred_plot_recall)
+
+# Assemble Plot
+# Refit the plot for accuracy to the full model for comparability
+
+pred$fit_acc <- predict(mod_br_phi, newdata=pred)
+pred_plot_acc <- xyplot(fit_acc ~ log10(file.size) | index.type + chunks, group= frame.size, 
+                        data=pred, type='l', key=key, 
+                        scales=list(alternating=FALSE, y=list(lim=c(0.65,1.05), at=c(0.7,0.8,0.9,1.0))),
+                        ylab='Predicted accuracy', main='Accuracy')
+pred_plot_acc <- useOuterStrips(pred_plot_acc)
+
+# Combine
+options(repr.plot.width = 15, repr.plot.height = 6)
+print(pred_plot_acc, split=c(1,1,3,1), more=TRUE)
+print(pred_plot_prec, split=c(2,1,3,1), more=TRUE)
+print(pred_plot_recall, split=c(3,1,3,1), more=FALSE)
+
 # Using base graphics to plot fits over hexbin
+
+hexplot <- hexbinplot(accuracy_t ~ log10(file.size) | index.type + chunks, 
+                      aspect=2/3, data=dat, colorkey=FALSE)
+hexplot <- useOuterStrips(hexplot)
+print(hexplot)
+
 
 hexbin_to_poly <- function(hx){
   
@@ -571,7 +643,126 @@ mtext(side=2, 'Accuracy', outer=TRUE, line=2.2)
 mtext(side=1, expression(log[10]~file~size), outer=TRUE, line=2.2)
 
 
+##### For Precision: 
 
+hexplot <- hexbinplot(precision_t ~ log10(file.size) | index.type + chunks, 
+                      aspect=2/3, data=dat, colorkey=FALSE)
+hexplot <- useOuterStrips(hexplot)
+print(hexplot)
+
+options(repr.plot.width = 6, repr.plot.height = 8)
+
+# Create a 4 by 2 layout of edge to edge plots with 
+# an outer margin for annotation
+par(mfcol=c(4,2), mar=c(0,0,0,0), oma=c(4,4,2.2,2.2), mgp=c(1.8,0.6, 0))
+
+# Loop combinations of index type (columns) and chunking (rows)
+for (it in 1:2){
+  for (ch in 1:4){
+    
+    this_it <- levels(dat$index.type)[it]
+    this_ch <- levels(dat$chunks)[ch]
+    
+    # Get a hexbin object for this panel subset
+    dd <- subset(dat, index.type == this_it & chunks == this_ch)
+    hx <- hexbin(log10(dd$file.size), dd$precision_t, xbins=30, 
+                 shape=2/3, xbnds=c(0,2), ybnds=c(0.15,1))
+    
+    # Convert the hexbin of the data to base graphics
+    hx_p <- hexbin_to_poly(hx)
+    plot(hx_p, type='n', xaxt='n', yaxt='n', xlim=c(0,2), ylim=c(0.2,1))
+    # Colour scale for density (relative within plots)
+    cols <- (1 - (hx@count / max(hx@count)) * 0.7) - 0.2
+    # Add polygons
+    polygon(hx_p, col=grey(cols), border=NA)
+    
+    # Add prediction lines for the four frame size fits
+    for (fs in 1:4){
+      this_fs <- levels(dat$frame.size)[fs]
+      fit <- subset(pred, index.type == this_it & chunks == this_ch & frame.size == this_fs)
+      lines(prec_fit ~ log10(file.size), data=fit, col=fs)
+    }
+    
+    # Conditional panel annotation.
+    if (it == 1) axis(2, at=seq(0.25, 1, by=0.25))
+    if (ch == 4) axis(1)
+    if (ch == 1) {
+      axis(3, labels=FALSE, at=seq(0.25, 1, by=0.25))
+      mtext(side=3, this_it, line=1)
+    }
+    if (it == 2){
+      axis(4, labels=FALSE)
+      mtext(side=4, this_ch, line=1)
+    }
+  }
+}
+
+# Final labels. 
+legend('bottomright', col=1:4, legend=c("20 min", "10 min", "5 min", "2.5 min"), 
+       bty='n', lty=1)
+mtext(side=2, 'Precision', outer=TRUE, line=2.2)
+mtext(side=1, expression(log[10]~file~size), outer=TRUE, line=2.2)
+
+
+##### For Recall: 
+
+hexplot <- hexbinplot(recall_t ~ log10(file.size) | index.type + chunks, 
+                      aspect=2/3, data=dat, colorkey=FALSE)
+hexplot <- useOuterStrips(hexplot)
+print(hexplot)
+
+options(repr.plot.width = 6, repr.plot.height = 8)
+
+# Create a 4 by 2 layout of edge to edge plots with 
+# an outer margin for annotation
+par(mfcol=c(4,2), mar=c(0,0,0,0), oma=c(4,4,2.2,2.2), mgp=c(1.8,0.6, 0))
+
+# Loop combinations of index type (columns) and chunking (rows)
+for (it in 1:2){
+  for (ch in 1:4){
+    
+    this_it <- levels(dat$index.type)[it]
+    this_ch <- levels(dat$chunks)[ch]
+    
+    # Get a hexbin object for this panel subset
+    dd <- subset(dat, index.type == this_it & chunks == this_ch)
+    hx <- hexbin(log10(dd$file.size), dd$recall_t, xbins=30, 
+                 shape=2/3, xbnds=c(0,2), ybnds=c(0.15,1))
+    
+    # Convert the hexbin of the data to base graphics
+    hx_p <- hexbin_to_poly(hx)
+    plot(hx_p, type='n', xaxt='n', yaxt='n', xlim=c(0,2), ylim=c(0.2,1))
+    # Colour scale for density (relative within plots)
+    cols <- (1 - (hx@count / max(hx@count)) * 0.7) - 0.2
+    # Add polygons
+    polygon(hx_p, col=grey(cols), border=NA)
+    
+    # Add prediction lines for the four frame size fits
+    for (fs in 1:4){
+      this_fs <- levels(dat$frame.size)[fs]
+      fit <- subset(pred, index.type == this_it & chunks == this_ch & frame.size == this_fs)
+      lines(recall_fit ~ log10(file.size), data=fit, col=fs)
+    }
+    
+    # Conditional panel annotation.
+    if (it == 1) axis(2, at=seq(0.25, 1, by=0.25))
+    if (ch == 4) axis(1)
+    if (ch == 1) {
+      axis(3, labels=FALSE, at=seq(0.25, 1, by=0.25))
+      mtext(side=3, this_it, line=1)
+    }
+    if (it == 2){
+      axis(4, labels=FALSE)
+      mtext(side=4, this_ch, line=1)
+    }
+  }
+}
+
+# Final labels. 
+legend('bottomright', col=1:4, legend=c("20 min", "10 min", "5 min", "2.5 min"), 
+       bty='n', lty=1)
+mtext(side=2, 'Recall', outer=TRUE, line=2.2)
+mtext(side=1, expression(log[10]~file~size), outer=TRUE, line=2.2)
 
 
 
