@@ -1,13 +1,13 @@
 #######################################################################
-# Script that generates bland altman plots from raw data. I think in
-# this one everything is compared to the RAW 
+# Alternate script that generates bland altman plots from raw data. In
+# this one "Raw 20" is considered the gold standard
 # 
 # 1) Seperates RAW 20min as gold standard 
 # 2) Generates ID 
 # 3) Finds the distance between each sample and corresponding gold standard
 # 4) Creates Bland Altman Plots 
 #
-# David Orme
+# David Orme (with minor modifications by Becky Heath)
 # Summer 2020 
 #
 #
@@ -15,19 +15,25 @@
 
 # AUDIOSET processing
 
-	audioset <- read.csv('Audiosets_Master_fixed.csv')
+	audioset <- read.csv('Dataframes/Data_AudioSet_Fingerprint.csv')
 	
 	# standardise names
-	audioset$Site <- toupper(audioset$Site)
+	audioset$site <- toupper(audioset$site)
+	
+
+	audioset$frame.size <- as.factor(audioset$frame.size)
+	# > levels(audioset$frame.size)
+	# [1] "10min"  "2_5min" "20min"  "5min" 
+	levels(audioset$frame.size) <- c('10:00', '02:30', '20:00', '05:00')
 	
 	# Get and standardize IDs to match up
 	# - need to format the simple time stamps for 20 min RAWs (e.g. 201) to 
 	#   match the degraded sample (e.g. 0201) but this is not systematic
 	# - need to get the sequence number for subsamples
 	audioset$starttime <- regmatches(audioset$time, regexpr('^[0-9]+', audioset$time))
-	audioset$starttime <- sprintf('%04s', audioset$starttime)
+	audioset$starttime <- sprintf('%04d', as.numeric(audioset$starttime))
 	audioset$sample <- ifelse(grepl('sample', audioset$time), regmatches(audioset$time, regexpr('[0-9]$', audioset$time)), 0)
-	audioset$id <- with(as, sprintf('%s_%s_%04s_%s_%s', Site, Date, starttime, frame.size, sample))
+	audioset$id <- with(audioset, sprintf('%s_%s_%04s_%s_%s', site, date, starttime, frame.size, sample))
 	
 	# **EXPERIMENTAL** - converting indices to empirical CDF quantiles.
 	as_names <- paste0('feat', 1:128)
@@ -38,12 +44,12 @@
 	}
 		
 	# Split the raw from the degraded recordings to match in gold standard
-	raw_as <- subset(as, compression=='RAW')
+	raw_as <- subset(audioset, compression=='RAW')
 	
 	# Now find both the full gold standard recording (20 minutes of uncompressed 
 	# audio) and the specific raw
-	audioset$raw_id_full <- with(audioset, sprintf('%s_%s_%04s_20:00_0', Site, Date, starttime))
-	audioset$raw_id_fsize <- with(audioset, sprintf('%s_%s_%04s_%s_%s', Site, Date, starttime, frame.size, sample))
+	audioset$raw_id_full <- with(audioset, sprintf('%s_%s_%04s_20:00_0', site, date, starttime))
+	audioset$raw_id_fsize <- with(audioset, sprintf('%s_%s_%04s_%s_%s', site, date, starttime, frame.size, sample))
 	
 	# Check matching
 	# - just one mismatch on the full id: "E_2019_2_28_2143"
@@ -52,10 +58,10 @@
 	# "E_2019_2_28_2143_20:00_0" "D_2019_2_26_0840_02:30_8" "D_2019_2_26_0840_02:30_9"
 	setdiff(audioset$raw_id_fsize, raw_as$id)
 	
-		
-	# Now calculate the feature differences and hence distance
+		# Now calculate the feature differences and hence distance
 	degr_diff <- audioset[, as_names] - raw_as[match(audioset$raw_id_full, raw_as$id), as_names]
-	audioset $ft_distance_full <- sqrt(rowSums(degr_diff ^2))
+	audioset $ft_distance_full <- sqrt(rowSums(degr_diff ^2)) 
+	
 	degr_diff <- audioset[, as_names] - raw_as[match(audioset$raw_id_fsize, raw_as$id), as_names]
 	audioset$ft_distance_fsize <- sqrt(rowSums(degr_diff ^2))
 	
@@ -64,19 +70,20 @@
 	
 # Acoustic indices processing
 	
-	ft <- read.csv('six_features_file_size_with_ID.csv')
+	ft <- read.csv('Dataframes/Data_Analytical_Indices.csv')
 	
+	ft$frame.size <- as.factor(ft$frame.size)
 	# > levels(ft$frame.size)
 	# [1] "10min"  "2_5min" "20min"  "5min"  
 	levels(ft$frame.size) <- c('10:00', '02:30', '20:00', '05:00')
 
-	ft$starttime <- regmatches(ft$time, regexpr('^[0-9]+', ft$time))
-	ft$starttime <- sprintf('%04s', ft$starttime)
+	ft$starttime <- regmatches(ft$time, regexpr('^[0-9]+', ft$time)) # just the first numbers
+	ft$starttime <- sprintf('%04d', as.numeric(ft$starttime)) 
 	ft$sample <- ifelse(grepl('sample', ft$time), regmatches(ft$time, regexpr('[0-9]$', ft$time)), 0)
 	ft$id <- with(ft, sprintf('%s_%s_%04s_%s_%s', site, date, starttime, frame.size, sample))
 		
 	# **EXPERIMENTAL** - converting indices to empirical CDF quantiles.
-	ft_names <- c("Aci", "ADI", "Aeev", "Bio", "H", "M", "NDSI")
+	ft_names <- c("ACI", "ADI", "Aeev", "Bio", "H", "M", "NDSI")
 
 	for(each_ft in ft_names){
 		# Odd code - ECDF creates a function based on X, which we then use to find the quantile of each value within it.
@@ -85,7 +92,7 @@
 	
 	# Get the raw benchmarks
 	raw_ft <- subset(ft, compression=='RAW')
-	
+
 	# Now find both the full gold standard recording (20 minutes of uncompressed 
 	# audio) and the specific raw
 	ft$raw_id_full <- with(ft, sprintf('%s_%s_%04s_20:00_0', site, date, starttime))
@@ -110,6 +117,7 @@
 	raw_full <- raw_ft[match(ft$raw_id_full, raw_ft$id), ft_names]
 	ft_mean_full <- (ft[, ft_names] + raw_full) / 2
 	ft_diff_full <- ft[, ft_names] - raw_full
+	
 	raw_fsize <- raw_ft[match(ft$raw_id_fsize, raw_ft$id), ft_names]
 	ft_mean_fsize <- (ft[, ft_names] + raw_fsize) / 2
 	ft_diff_fsize <- ft[, ft_names] - raw_fsize
@@ -119,24 +127,26 @@
 				ft_mean_full=ft_mean_full, ft_diff_full=ft_diff_full,
 				ft_mean_fsize=ft_mean_fsize, ft_diff_fsize=ft_diff_fsize)
 
+	
 # Combine:
 
 	# drop duplicate columns
 	ft <- subset(ft, select=! names(ft) %in% c('frame.size', 'time','date', 
 				 'start.time', 'sample','id', 'raw_id_full'))	
-	data <- merge(audioset, ft, by=c('raw_id_fsize', 'compression'), all=TRUE)
+	data <- merge(audioset, ft, by=c('raw_id_fsize', 'compression',"site","req.freq","file.size","max.freq","starttime","id.no"), all=TRUE)
 
 	# Add in an artificial x offset to separate site data on scatterplots
 	off <- 0.05
-	data$x_off <- with(data, ifelse(Site=='VJR', -off, ifelse(Site=='D', 0, off)))
+	data$x_off <- with(data, ifelse(site=='VJR', -off, ifelse(site=='D', 0, off)))
 	data$file.size.off <- with(data, log(file.size) + x_off)
 
+	
 	# order the compressions by file size
 	ord <- unique(subset(data, select=c(compression, file.size), ! is.na(file.size)))
 	comp_by_size <- as.character(ord$compression[order(ord$file.size)])
 	data$compression <- factor(data$compression, levels=comp_by_size)
 	
-	saveRDS(data, file='combined_audioset_indices_ECDF.rds')
+	#saveRDS(data, file='combined_audioset_indices_ECDF.rds')
 
 # PLOTS
 	
@@ -163,7 +173,7 @@
 	# 1) Looking at effects of comparison to gold standard (full 20 minute raw audio) or the
 	# matching sample of that raw for reduced frame size
 	
-	pdf('full_vs_fsize_raw_as_reference.pdf', width=8, height=11, paper='a4')
+	pdf('Figures/full_vs_fsize_raw_as_reference.pdf', width=8, height=11, paper='a4')
 	
 		parset <- list(layout.widths=list(left.padding=0, right.padding=0), 
 		        layout.heights=list(top.padding=0, bottom.padding=0))
@@ -179,7 +189,7 @@
 		for(each_ft in ft_names){
 			
 			# Get each variable mean and difference in turn
-			fm <- as.formula(sprintf('raw_fsize.%s ~ raw_full.%s | Site + frame.size', 
+			fm <- as.formula(sprintf('raw_fsize.%s ~ raw_full.%s | site + frame.size', 
 									 each_ft, each_ft))
 	
 			p <- hexbinplot(fm, data=data, 
@@ -209,14 +219,14 @@
 	# Looking at plots of the raw values against the compressed/shorter samples, 
 	# with panels for each combination
 	
-	pdf('Acoustic_feature_value_plots.pdf', height=11, width=9, paper='a4')	
+	pdf('Figures/Acoustic_feature_value_plots.pdf', height=11, width=9, paper='a4')	
 	
 		for(idx in seq_along(ft_names)){
 			# Get the feature name
 			this_ft <- ft_names[idx]
 			
 			# build the formula
-			fm <- sprintf('%s ~ raw.%s | compression + frame.size', this_ft, this_ft)
+			fm <- sprintf('%s ~ raw_full.%s | compression + frame.size', this_ft, this_ft)
 			fm <- as.formula(fm)
 			
 			# Use a log transformation on the counts - the 02:30 obviously has 8 times as
@@ -232,7 +242,7 @@
 
 	# Bland Altman split by compression and frame size
 		
-	pdf('Acoustic_feature_BA_panes.pdf', height=8, width=11, paper='a4r')	
+	pdf('Figures/Acoustic_feature_BA_panes.pdf', height=8, width=11, paper='a4r')	
 	
 		for(idx in seq_along(ft_names)){
 			# Get the feature name
@@ -259,7 +269,7 @@
 	# on the X axis, not the mean. Side by side comparisons to the full 20 minute RAW and
 	# to the appropriate RAW subframe.
 		
-	pdf('Acoustic_feature_BA_panes_using_RAW_standard.pdf', height=8, width=11, paper='a4r')	
+	pdf('Figures/Acoustic_feature_BA_panes_using_RAW_standard.pdf', height=8, width=11, paper='a4r')	
 	
 		for(idx in seq_along(ft_names)){
 			# Get the feature name
