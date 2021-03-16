@@ -5,6 +5,8 @@
 #
 # This script also splits the data into TOD for Temporal Splitting Analysis
 #
+# TODO: Speed this up!
+# 
 # Becky Heath 
 # r.heath18@imperial.ac.uk
 #
@@ -141,7 +143,7 @@ do_analysis <- function(data_hold, chunks) {
   
   # Test the Model and Find Accuracy, Precision and Recall
   rf.predict <- predict(rf, newdata = test_data)
-  conf.rf=table(test_data$site, rf.predict)
+  conf.rf= table(test_data$site, rf.predict)
   accuracy = sum(diag(conf.rf))/sum(conf.rf)
   precision = (conf.rf[1,1]/sum(conf.rf[,1]) + conf.rf[2,2]/sum(conf.rf[,2]) + conf.rf[3,3]/sum(conf.rf[,3]))/3
   recall = (conf.rf[1,1]/sum(conf.rf[1,]) + conf.rf[2,2]/sum(conf.rf[2,]) + conf.rf[3,3]/sum(conf.rf[3,]))/3
