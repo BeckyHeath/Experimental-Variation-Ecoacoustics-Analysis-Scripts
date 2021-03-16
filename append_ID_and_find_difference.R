@@ -1,4 +1,4 @@
-#########################################################
+###########################################################
 # Script to take Raw AudioSet and Analytical Index Data and
 #   1) Append and ID which to group same recordings with
 #       which have been compressed to different Levels
@@ -23,8 +23,8 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 ##### Append the ID ##########################################################
 
-# Set working directory and load raw dataframe 
-audiosets <- read.csv("xx.csv", header = T)
+# Load raw dataframe 
+audiosets <- read.csv("xx.csv", header = T) #use raw data here, we've already generated the IDs
 
 # Set up empty new column 
 audiosets$id.no <- NA
@@ -44,7 +44,7 @@ for (i in 1:nrow(audiosets)) {
 } 
 
 #Export to CSV
-#write.csv(audiosets, "FEATURES_with_ID_FULL.csv")
+#write.csv(audiosets, "Data_AudioSet_Fingerprint.csv")
 
 
 ##### Find Absolute Differences ##################################
@@ -116,7 +116,7 @@ out.file <- id.audiosets[FALSE,]
 sort_per_file <- id.audiosets %>% group_split(id.no)
 
 # This works but is incredibly long winded
-#CREATE A LOOP THAT GOES THROUGH EACH OF THE GENERATED FILES AND COMPARES THE FEATURE TO THAT OF THE RAW
+# Loop that goes through and compares each value to the raw
 for(i in 1:length(sort_per_file)) {
   one.file <- sort_per_file[[i]]
   #EXTRACT IT: 
@@ -157,15 +157,6 @@ for(i in 1:length(sort_per_file)) {
 #Write to CSV
 with_dif<-cbind(out.file, total = rowSums(difference))
 #write.csv(out.file, "Dataframes/Difference_Data_AudioSet_Fingerprint.csv")
-
-
-
-
-
-
-
-
-
 
 
 
