@@ -41,6 +41,8 @@ data <-
 # This also contains the "do analysis" function which runs the 
 # random forest and saves the output CMs and accuracy metrics
 
+
+# TODO Make sure these are copied into the other scripts
 time_chunks_12 <- function(times){
   #print(times)
   x <- substr(times,1,2) #GET FIRST TWO CHARACTERS 
@@ -52,11 +54,11 @@ time_chunks_12 <- function(times){
   } else if (x %in% c("02","03")) {
     times <- "Midnight3"
   } else if (x %in% c("04","05")) {
-    times <- "Early AM1"
+    times <- "Dawn1"
   } else if (x %in% c("06","07")) {
-    times <- "Early AM2"
+    times <- "Dawn2"
   } else if (x %in% c("08","09")) {
-    times <- "Early AM3"
+    times <- "Dawn3"
   } else if (x %in% c("10","11")) {
     times <- "Midday1"
   } else if (x %in% c("12","13")) {
@@ -81,21 +83,21 @@ time_chunks_8 <- function(times){
   #print(times)
   x <- substr(times,1,2) #GET FIRST TWO CHARACTERS 
   print(x)
-  if (x %in% c("23","00","01")) {
+  if (x %in% c("22","23","00")) {
     times <- "Midnight"
-  } else if (x %in% c("02","03","04")) {
+  } else if (x %in% c("01","02","03")) {
     times <- "Early AM"
-  } else if (x %in% c("05","06","07")) {
+  } else if (x %in% c("04","05","06")) {
     times <- "Dawn"   
-  } else if (x %in% c("08","09","10")) {
+  } else if (x %in% c("07","08","09")) {
     times <- "Morning"
-  } else if (x %in% c("11","12","13")) {
+  } else if (x %in% c("10","11","12")) {
     times <- "Midday"
-  } else if (x %in% c("14","15","16")) {
+  } else if (x %in% c("13","14","15")) {
     times <- "Afternoon"
-  } else if (x %in% c("17","18","19")) {
+  } else if (x %in% c("16","17","18")) {
     times <- "Dusk"
-  } else if (x %in% c("20","21","22")) {
+  } else if (x %in% c("19","20","21")) {
     times <- "Evening"
   }
   
