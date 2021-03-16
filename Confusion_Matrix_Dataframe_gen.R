@@ -142,21 +142,28 @@ for (x in files){
 write.csv(out.file, "Dataframes/Complete_Confusion_Matrix_data_rejig.csv", row.names = FALSE)
 
 
-# TODO Finish This
+# Load DF
 
-## Optional to Tidy for Analysis
-#j = 0
-#for(i in out.file$Time){
-#  j=j+1
-#  out <- str_remove(i, "Quarter Day ")
-#  lab = substr(i,1,4)
-#  print(lab)
-#  if(lab == "Morn"){
-#    out.file$Time_2[j] <- "Morning"
-#  }elif(lab == "Earl"){
-#    out.file$Time_2[j] <- "Morning"
-#  }
-    
-#  }
- # }
+df <- read.csv("Dataframes/Complete_Confusion_Matrix_data_rejig.csv")
+
+times_to_quarters <- function(time){
+  x <- substr(times,1,4) #GET FIRST TWO CHARACTERS 
+  print(x)
+  if (x %in% "Dawn") {
+    times <- "Dawn"
+  } else if (x %in% "Midd") {
+    times <- "Midday"
+  } else if (x %in% "Midn") {
+    times <- "Midnight"
+  } else if (x %in% "Dusk") {
+    times <- "Dusk"
+
+  }
+  
+  
+  #print(times)  
+  #return(times)  
+  
+}
+
   

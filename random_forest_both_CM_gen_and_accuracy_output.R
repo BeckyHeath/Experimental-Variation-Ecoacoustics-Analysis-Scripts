@@ -84,21 +84,21 @@ time_chunks_8 <- function(times){
   x <- substr(times,1,2) #GET FIRST TWO CHARACTERS 
   print(x)
   if (x %in% c("22","23","00")) {
-    times <- "Midnight"
+    times <- "Midnight1"
   } else if (x %in% c("01","02","03")) {
-    times <- "Early AM"
+    times <- "Midnight2"
   } else if (x %in% c("04","05","06")) {
-    times <- "Dawn"   
+    times <- "Dawn1"   
   } else if (x %in% c("07","08","09")) {
-    times <- "Morning"
+    times <- "Dawn2"
   } else if (x %in% c("10","11","12")) {
-    times <- "Midday"
+    times <- "Midday1"
   } else if (x %in% c("13","14","15")) {
-    times <- "Afternoon"
+    times <- "Midday2"
   } else if (x %in% c("16","17","18")) {
-    times <- "Dusk"
+    times <- "Dusk1"
   } else if (x %in% c("19","20","21")) {
-    times <- "Evening"
+    times <- "Dusk2"
   }
   
   #print(times)  
@@ -110,13 +110,13 @@ time_chunks_4 <- function(times){
   x <- substr(times,1,2) #GET FIRST TWO CHARACTERS 
   print(x)
   if (x %in% c("22","23","00","01", "02", "03")) {
-    times <- "Quarter_Day_Midnight"
+    times <- "Midnight"
   } else if (x %in% c("04","05","06","07","08","09")) {
-    times <- "Quarter_Day_Dawn"   
+    times <- "Dawn"   
   } else if (x %in% c("10","11","12","13","14","15")) {
-    times <- "Quarter_Day_Midday"
+    times <- "Midday"
   } else if (x %in% c("16","17","18","19","20","21")) {
-    times <- "Quarter_Day_Dusk"
+    times <- "Dusk"
   }
 }
 
