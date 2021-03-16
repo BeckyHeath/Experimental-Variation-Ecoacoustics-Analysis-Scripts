@@ -78,48 +78,56 @@ for (x in files){
   N <- cm[1,2]
   out.line <- data.frame(Obs,Ind,Comp,Pred,Time,N,chunks,frame.size)
   out.file <-rbind(out.file,out.line)
+  
   #02 Site 1 Guessed 2
   Obs <- cm[1,1]
   Pred <- cm[2,1]
-  N <- cm[1,3]
-  out.line <- data.frame(Obs,Ind,Comp,Pred,Time,N,chunks,frame.size)
-  out.file <-rbind(out.file,out.line)
-  #03 Site 1 Guessed 3
-  Obs <- cm[1,1]
-  Pred <- cm[3,1]
-  N <- cm[1,4]
-  out.line <- data.frame(Obs,Ind,Comp,Pred,Time,N,chunks,frame.size)
-  out.file <-rbind(out.file,out.line)
-  #04 Site 2 Guessed 1
-  Obs <- cm[2,1]
-  Pred <- cm[1,1]
   N <- cm[2,2]
   out.line <- data.frame(Obs,Ind,Comp,Pred,Time,N,chunks,frame.size)
   out.file <-rbind(out.file,out.line)
+  
+  #03 Site 1 Guessed 3
+  Obs <- cm[1,1]
+  Pred <- cm[3,1]
+  N <- cm[3,2]
+  out.line <- data.frame(Obs,Ind,Comp,Pred,Time,N,chunks,frame.size)
+  out.file <-rbind(out.file,out.line)
+  
+  #04 Site 2 Guessed 1
+  Obs <- cm[2,1]
+  Pred <- cm[1,1]
+  N <- cm[1,3]
+  out.line <- data.frame(Obs,Ind,Comp,Pred,Time,N,chunks,frame.size)
+  out.file <-rbind(out.file,out.line)
+  
   #05 Site 2 Guessed 2
   Obs <- cm[2,1]
   Pred <- Obs
   N <- cm[2,3]
   out.line <- data.frame(Obs,Ind,Comp,Pred,Time,N,chunks,frame.size)
   out.file <-rbind(out.file,out.line)
+  
   #06 Site 2 Guessed 3
   Obs <- cm[2,1]
   Pred <- cm[3,1]
-  N <- cm[2,4]
-  out.line <- data.frame(Obs,Ind,Comp,Pred,Time,N,chunks,frame.size)
-  out.file <-rbind(out.file,out.line)
-  #07 Site 3 Guessed 1
-  Obs <- cm[3,1]
-  Pred <- cm[1,1]
-  N <- cm[3,2]
-  out.line <- data.frame(Obs,Ind,Comp,Pred,Time,N,chunks,frame.size)
-  out.file <-rbind(out.file,out.line)
-  #08 Site 3 Guessed 2
-  Obs <- cm[3,1]
-  Pred <- cm[2,1]
   N <- cm[3,3]
   out.line <- data.frame(Obs,Ind,Comp,Pred,Time,N,chunks,frame.size)
   out.file <-rbind(out.file,out.line)
+  
+  #07 Site 3 Guessed 1
+  Obs <- cm[3,1]
+  Pred <- cm[1,1]
+  N <- cm[1,4]
+  out.line <- data.frame(Obs,Ind,Comp,Pred,Time,N,chunks,frame.size)
+  out.file <-rbind(out.file,out.line)
+  
+  #08 Site 3 Guessed 2
+  Obs <- cm[3,1]
+  Pred <- cm[2,1]
+  N <- cm[2,4]
+  out.line <- data.frame(Obs,Ind,Comp,Pred,Time,N,chunks,frame.size)
+  out.file <-rbind(out.file,out.line)
+  
   #09 Site 3 Guessed 3
   Obs <- cm[3,1]
   Pred <- Obs
@@ -127,7 +135,28 @@ for (x in files){
   out.line <- data.frame(Obs,Ind,Comp,Pred,Time,N,chunks,frame.size)
   out.file <-rbind(out.file,out.line)
   rm(Obs,Ind,Comp,Pred,Time,N,chunks,frame.size)                           ### CLEAR VARIABLES
+  
   }
 }
 
-write.csv(out.file, "Dataframes/Complete_Confusion_Matrix_data.csv", row.names = FALSE)
+write.csv(out.file, "Dataframes/Complete_Confusion_Matrix_data_rejig.csv", row.names = FALSE)
+
+
+# TODO Finish This
+
+## Optional to Tidy for Analysis
+#j = 0
+#for(i in out.file$Time){
+#  j=j+1
+#  out <- str_remove(i, "Quarter Day ")
+#  lab = substr(i,1,4)
+#  print(lab)
+#  if(lab == "Morn"){
+#    out.file$Time_2[j] <- "Morning"
+#  }elif(lab == "Earl"){
+#    out.file$Time_2[j] <- "Morning"
+#  }
+    
+#  }
+ # }
+  
