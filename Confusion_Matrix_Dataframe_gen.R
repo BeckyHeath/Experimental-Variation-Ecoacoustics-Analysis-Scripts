@@ -2,6 +2,8 @@
 # Script to Generate a DataFrame from Confusion Matricies
 # (for graphing)
 #
+# TODO: Streamline This!
+#
 # Becky Heath Autumn 2020 
 # r.heath18@imperial.ac.uk
 #
@@ -15,60 +17,46 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 ### load confusion matrix data ####
 files <- list.files(path ="Confusion_Matricies/")
 
-#Perform Data Extraction
+# Perform Data Extraction
 out.file<-data.frame()
+
 for (x in files){
+  
+  # Load each confusion matrix and perform data extraction 
+  # Special conditions here are to do with "_" between two-word phrases in the fielename
+  # TODO: make the conf matrix generation have "__" between meta values instead
+  
   path <- paste("Confusion_Matricies/",x, sep="")
   cm <- read.csv(path, header = FALSE)
   meta <- str_split(x, "_")
   Ind <- meta[[1]][[2]]
-  if (Ind == "Analytical"){                  ########## Analytical Indices 
+  if (Ind == "Analytical"){                  # Condition for Analytical Indices (2 words)
     frame.size <- meta[[1]][[4]]
-    
-    if (frame.size == 2){                    # Fix 2.5 min problem
+    if (frame.size == 2){                    # Ensuring both parts of "2_5min" captured
       frame.size <- paste(meta[[1]][4:5], collapse= ".")
       Comp <- meta[[1]][[6]]
       chunks <- meta[[1]][[7]]
       Time <- meta[[1]][[8]]
-      if (chunks == 4){                     # Sort the Quarter Day Thing 
-        TM <- meta[[1]][8:10]
-        Time <- paste(TM, collapse =' ')
-        }
-        
-      } else {                     #So if there's no issue with the 2.5 
+      } else {  
         Comp <- meta[[1]][[5]]
         chunks <- meta[[1]][[6]]
         Time <- meta[[1]][[7]]
-        if (chunks == 4){           # Again the quarter day thing
-          TM <- meta[[1]][7:9]
-          Time <- paste(TM, collapse =' ')
-          }
       }
       
       
-    } else {                    ######### AudioSet Here
+    } else {                    # AudioSet Fingerprint
     frame.size <- meta[[1]][[3]]
-    if (frame.size == 2){                 # Sorting the 2.5 thing
+    if (frame.size == 2){             # Ensuring both parts of "2_5min" captured
       frame.size <- paste(meta[[1]][3:4], collapse= ".")
       Comp <- meta[[1]][[5]]
       Time <- meta[[1]][[7]]
       chunks <- meta[[1]][[6]]
-      if (chunks == 4){             # Sorting the Quarter day thing 
-        TM <- meta[[1]][7:9] 
-        Time <- paste(TM, collapse =' ')
-      }
-      
-      
-      } else {
-        Comp <- meta[[1]][[4]]
+      } else {                
+        Comp <- meta[[1]][[4]] 
         print(meta)
         print(Comp)
         Time <- meta[[1]][[6]]
         chunks <- meta[[1]][[5]]
-        if (chunks == 4){
-          TM <- meta[[1]][6:8] 
-          Time <- paste(TM, collapse =' ')
-    }
     }
   }
   ## Write Out.Line (9 per File)
@@ -82,21 +70,21 @@ for (x in files){
   #02 Site 1 Guessed 2
   Obs <- cm[1,1]
   Pred <- cm[2,1]
-  N <- cm[2,2]
+  N <- cm[1,3]
   out.line <- data.frame(Obs,Ind,Comp,Pred,Time,N,chunks,frame.size)
   out.file <-rbind(out.file,out.line)
   
   #03 Site 1 Guessed 3
   Obs <- cm[1,1]
   Pred <- cm[3,1]
-  N <- cm[3,2]
+  N <- cm[1,4]
   out.line <- data.frame(Obs,Ind,Comp,Pred,Time,N,chunks,frame.size)
   out.file <-rbind(out.file,out.line)
   
   #04 Site 2 Guessed 1
   Obs <- cm[2,1]
   Pred <- cm[1,1]
-  N <- cm[1,3]
+  N <- cm[2,2]
   out.line <- data.frame(Obs,Ind,Comp,Pred,Time,N,chunks,frame.size)
   out.file <-rbind(out.file,out.line)
   
@@ -110,21 +98,21 @@ for (x in files){
   #06 Site 2 Guessed 3
   Obs <- cm[2,1]
   Pred <- cm[3,1]
-  N <- cm[3,3]
+  N <- cm[2,4]
   out.line <- data.frame(Obs,Ind,Comp,Pred,Time,N,chunks,frame.size)
   out.file <-rbind(out.file,out.line)
   
   #07 Site 3 Guessed 1
   Obs <- cm[3,1]
   Pred <- cm[1,1]
-  N <- cm[1,4]
+  N <- cm[3,2]
   out.line <- data.frame(Obs,Ind,Comp,Pred,Time,N,chunks,frame.size)
   out.file <-rbind(out.file,out.line)
   
   #08 Site 3 Guessed 2
   Obs <- cm[3,1]
   Pred <- cm[2,1]
-  N <- cm[2,4]
+  N <- cm[3,3]
   out.line <- data.frame(Obs,Ind,Comp,Pred,Time,N,chunks,frame.size)
   out.file <-rbind(out.file,out.line)
   
@@ -139,31 +127,6 @@ for (x in files){
   }
 }
 
-write.csv(out.file, "Dataframes/Complete_Confusion_Matrix_data_rejig.csv", row.names = FALSE)
-
-
-# Load DF
-
-df <- read.csv("Dataframes/Complete_Confusion_Matrix_data_rejig.csv")
-
-times_to_quarters <- function(time){
-  x <- substr(times,1,4) #GET FIRST TWO CHARACTERS 
-  print(x)
-  if (x %in% "Dawn") {
-    times <- "Dawn"
-  } else if (x %in% "Midd") {
-    times <- "Midday"
-  } else if (x %in% "Midn") {
-    times <- "Midnight"
-  } else if (x %in% "Dusk") {
-    times <- "Dusk"
-
-  }
-  
-  
-  #print(times)  
-  #return(times)  
-  
-}
+write.csv(out.file, "Dataframes/Complete_Confusion_Matrix_data.csv", row.names = FALSE)
 
   
