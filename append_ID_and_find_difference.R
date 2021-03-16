@@ -5,6 +5,8 @@
 #   2) Find the Absolute Difference between the raw and compressed values
 #   3) Present Q-Q Plots of the Difference Distributions 
 #
+# TODO: Streamline this process
+#
 # EDIT: Differences were non-normally Distributed so Median and Quartiles found
 #       SEE "Median_and_Quartiles_Analytical_and_AudioSet.r" 
 #
