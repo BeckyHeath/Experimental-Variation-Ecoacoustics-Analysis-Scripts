@@ -15,8 +15,8 @@
 #
 
 #### Load Packages and Set Working Directory ####
-library("randomForest")
-library("tidyr")
+library(randomForest)
+library(tidyr)
 library(plyr)
 library(MASS)
 library(dplyr)
@@ -24,16 +24,6 @@ library(ggplot2)
 library(ggfortify)
 library(stringr)
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
-
-#### Load dataframe and Format Time: ####
-data <- read.csv("Dataframes/Data_AudioSet_Fingerprint.csv")
-
-data$site <- as.factor(data$site)
-
-data <-
-  data %>%
-  mutate(time = str_pad(time, 4, side = 'left', pad = '0'))
-
 
 #### Define Functions #####
 #
@@ -162,6 +152,16 @@ do_analysis <- function(data_hold, chunks) {
 
 #### Split Dataframes and Run Analysis (AudioSet)  ####
 
+#### Load dataframe and Format Time: ####
+data <- read.csv("Dataframes/Data_AudioSet_Fingerprint.csv")
+
+data$site <- as.factor(data$site)
+
+data <-
+  data %>%
+  mutate(time = str_pad(time, 4, side = 'left', pad = '0'))
+
+
 
 #Split dataframe depending on Compression:
 data_comp <- data %>% group_split(compression)
@@ -271,7 +271,10 @@ for(i in 1:length(data_reqtime)) {
 
 #### Split Datframes and Run Analysis (Analytical Indices)  ###############################################################################################
 
-data <- read.csv("Data_Analytical_Indices.csv")
+rm(list = setdiff(ls(), lsf.str())) # Remove all prior data
+
+# Load in New Data
+data <- read.csv("Dataframes/Data_Analytical_Indices.csv")
 data <- data[complete.cases(data),]
 data$site <- as.factor(data$site)
 
