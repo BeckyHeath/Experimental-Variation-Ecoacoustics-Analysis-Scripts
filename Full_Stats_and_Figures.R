@@ -34,8 +34,7 @@ median.index <- read.csv("Dataframes/Median_and_Quartiles_Analytical_Indices.csv
 median.audiosets <- read.csv("Dataframes/Median_and_Quartiles_AudioSet_Fingerprint.csv")
 abs.dif.index <- read.csv("Dataframes/Difference_Data_Analytical_Indices.csv")
 abs.dif.audiosets <- read.csv("Dataframes/Difference_Data_AudioSet_Fingerprint.csv")
-accuracy.both <- read.csv("Dataframes/RF_Accuracy_both_Aug_Test.csv")
-cm.subset <- read.csv("Dataframes/Confusion_matrix_data.csv", fileEncoding = "UTF-8-BOM" )
+accuracy.both <- read.csv("Dataframes/RF_Accuracy_Both.csv")
 cm.all <- read.csv("Dataframes/Complete_Confusion_Matrix_data.csv", fileEncoding = "UTF-8-BOM" )
 
 ##### Impact of Index: Auto Correlation (Figure 2) #####
@@ -63,11 +62,11 @@ abs.index <- upper.triangle(abs.index)
 abs.audioset <- abs(cor.audiosets)
 abs.audioset <- upper.triangle(abs.audioset)
 
-#write.table(abs.index, file = "Correlation_data_abs_index.csv", sep = ",", append = TRUE, quote = FALSE,
-#            col.names = TRUE, row.names = FALSE)
+write.table(abs.index, file = "Dataframes/Correlation_data_abs_index.csv", sep = ",", append = TRUE, quote = FALSE,
+            col.names = TRUE, row.names = FALSE)
 
-#write.table(abs.audioset, file = "Correlation__data_abs_audioset.csv", sep = ",", append = TRUE, quote = FALSE,
-#            col.names = TRUE, row.names = FALSE)
+write.table(abs.audioset, file = "Correlation__data_abs_audioset.csv", sep = ",", append = TRUE, quote = FALSE,
+            col.names = TRUE, row.names = FALSE)
 
 ##### Impact of Compression: Like for Like Differences (Figure 3) #####
 
@@ -254,7 +253,7 @@ for(j in seq(1:128)){
   out.file <-rbind(out.file,out.line)
 }
 
-write.csv(out.file, "Lavernes_test.csv")
+write.csv(out.file, "Dataframes/Lavenes_test.csv")
 
 
 
@@ -268,7 +267,22 @@ whole.df <- cm.all
 cm <- whole.df[whole.df$frame.size == "20min",]
 cm <- subset(cm, (Comp %in% c("CBR8","RAW")) & (chunks %in% c("4", "None")))
 
-cm$Time <- ordered(cm$Time, levels=c('Dawn','Midday','Dusk','Midnight','Whole Day'))
+# Rename site varibales to be more descriptive
+
+cm$Pred <- as.factor(cm$Pred)
+cm$Obs <- as.factor(cm$Obs)
+cm$Ind <- as.factor(cm$Ind)
+
+levels(cm$Pred)[match("D",levels(cm$Pred))] <- "Cleared"
+levels(cm$Pred)[match("E",levels(cm$Pred))] <- "Logged"
+levels(cm$Pred)[match("VJR",levels(cm$Pred))] <- "Primary"
+
+levels(cm$Obs)[match("D",levels(cm$Obs))] <- "Cleared"
+levels(cm$Obs)[match("E",levels(cm$Obs))] <- "Logged"
+levels(cm$Obs)[match("VJR",levels(cm$Obs))] <- "Primary"
+
+levels(cm$Ind)[match("Analytical",levels(cm$Ind))] <- "AI"
+levels(cm$Ind)[match("AudioSet",levels(cm$Ind))] <- "AS"
 
 # Accuracy
 accuracy <- aggregate(N ~ Time + Ind + Comp, data=cm, FUN=sum, subset=Obs==Pred)
@@ -276,7 +290,6 @@ matrix_ns <- aggregate(N ~ Time + Ind + Comp, data=cm, FUN=sum)
 accuracy$accuracy <- accuracy$N / matrix_ns$N
 
 # Precision and Recall by habitat class
-
 # - create an empty data frame with the correct structure to append to
 precision <- subset(cm, select=c(Ind, Comp, Time, N), subset=FALSE)
 precision$Precision <- numeric(0)
@@ -308,15 +321,16 @@ for (this_comb in combn){
 
 # Quick and easy data visualisation 
 
-pdf('Time_breakdown_plots.pdf')
 
-xyplot(accuracy ~ Time | Comp, data=accuracy, groups = Ind, type='o')
+pdf('Figures/TOD_Time_breakdown_plots.pdf')
+
+  xyplot(accuracy ~ Time | Comp, data=accuracy, groups = Ind, type='o')
 
 
-xyplot(Precision ~ Time | Case + Comp , data=precision, groups = Ind, 
+  xyplot(Precision ~ Time | Case + Comp , data=precision, groups = Ind, 
        type='o', auto.key=TRUE)
 
-xyplot(Recall ~ Time | Comp + Case, data=precision, groups = Ind, 
+  xyplot(Recall ~ Time | Comp + Case, data=precision, groups = Ind, 
        type='o', auto.key=TRUE)
 
 dev.off()
@@ -763,6 +777,9 @@ legend('bottomright', col=1:4, legend=c("20 min", "10 min", "5 min", "2.5 min"),
        bty='n', lty=1)
 mtext(side=2, 'Recall', outer=TRUE, line=2.2)
 mtext(side=1, expression(log[10]~file~size), outer=TRUE, line=2.2)
+
+
+
 
 
 
