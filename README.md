@@ -8,9 +8,9 @@
 3) Audio Compressed (using fre:ac gui) and corresponding compression appended to filename
 4) Compressed audio split into different lengths (using pydub) and the length (frame size) appended to file name
 5) Audio (all locations, lengths, compression levels) run through the AudioSet CNN, fingerprint vector outputted to csv with filename used to describe metadata
-    this forms AudioSet raw data: "Data_Analytical_Indices.csv"
+    this forms AudioSet raw data: "Data_AudioSet_Fingerprint.csv"
 6) Audio (all locations, lengths, compression levels) analysed in R to extract Analytical Indices, outputted to csv with filename used to describe metadata
-    this forms Analytical Indices raw data: "Data_AudioSet_Fingerprint.csv"
+    this forms Analytical Indices raw data: "Data_Analytical_Indices.csv"
 
  ## Steps of Analysis covered in this repo
  
@@ -32,16 +32,13 @@
 #### "random_forest_both_CM_gen_and_accuracy_output.r" 
 1) Defines the functions which perform temporal splitting of the data 
 2) Runs a random forest for each test case 
-3) Saves the Confusion Matix (for plotting) of each test case as well as the overall Accuracy, Precision and Recall
+3) Saves the Confusion Matix (for plotting) of each test case as well as the overall Accuracy, Precision and Recall 
 
 #### "Confusion_Matrix_Dataframe_gen.r"
-1) Loads in all the confusion matrix data and outputs a single dataframe which captures all of the relevant CM information
+1) Loads in all the confusion matrix data and outputs a single dataframe which captures all of the relevant CM information. _Note: individual confusion matrices haven't been saved in this repo to save space but are easily regerated by the prior (random_forest_both_CM_gen_and_accuracy_output.r) script._
  
  ### Manuscript Meta-Statistics and Figure Generation: 
  
  #### "Full_Stats_and_Figures.r"
+ 1) Loads in all the data, runs statstical tests and plots graphs
  
- 
- ## Other Scripts
- ### AGB Generation 
- TBC
