@@ -1,4 +1,4 @@
-# Compression Paper Data Analysis Scripts
+# "How Index Selection, Compression and Recording Schedule Impact the description of Ecological Soundscapes" Data Analysis Scripts
  
  
  ## Prior to these Scripts: 
